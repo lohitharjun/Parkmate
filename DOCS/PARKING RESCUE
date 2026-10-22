@@ -1,0 +1,22 @@
+# ParkMate — Parking Rescue Specification
+
+## Trigger
+The requested parking slot is unavailable or the booking cannot be completed.
+
+## Inputs
+- Requested location
+- Requested time window
+- Available nearby listings
+- Price
+- Distance or estimated travel time, when available
+- Listing freshness and confirmation status
+
+## Recommendation Rules
+1. Exclude listings that are unavailable or not approved.
+2. Exclude listings that fail a fresh availability check.
+3. Rank eligible alternatives using proximity, price and freshness.
+4. Explain briefly why each alternative is suggested.
+5. Revalidate availability before confirming the new booking.
+
+## Important
+Do not claim live crowd detection without an integrated real-time data source. Do not invent confidence percentages.
