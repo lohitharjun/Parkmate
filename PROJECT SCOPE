@@ -1,6 +1,34 @@
-1. OUT OF SCOPE MVP:
+# ParkMate — MVP Scope
 
-a. CUSTOM TRAIT(AI)
-b.MAPS - LEAFLET , OPEN STREEP MAP
-c.IDENTITY VERIFICATION 
-d. CLAIMS OF LIVE CROWD DENSITY
+## Goal
+Build a working web application where users can find parking spaces or list their own private parking spaces.
+
+## Core Features
+
+1. User signup, login and logout.
+2. Consumer search and parking listing details.
+3. Provider listing creation and management.
+4. Listing review and approval before booking.
+5. Booking creation and prevention of overlapping bookings.
+6. My Bookings and provider reservation management.
+7. Parking Rescue: suggest eligible alternative parking when a booking cannot be completed.
+
+## Technology Stack
+- Frontend: React + Vite
+- Backend: Node.js + Express
+- Database and authentication: Supabase + PostgreSQL
+- Maps: Leaflet + OpenStreetMap, if time permits
+- Version control: GitHub
+
+## Out of Scope for MVP
+- Hardware or sensors
+- Real payment processing
+- Custom-trained AI models
+- Claims of live crowd density without a real data source
+- Extensive identity verification
+
+## Rules
+- Only approved listings can be booked.
+- Booking conflicts must be checked by the backend/database.
+- Never expose passwords, private keys or service-role secrets.
+- Keep the application simple, usable and demonstrable.
