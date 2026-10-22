@@ -1,0 +1,13 @@
+ ParkMate — Security and QA Checks
+
+- [ ] A user cannot view another user's private booking information.
+- [ ] A provider cannot edit another provider's listing.
+- [ ] Only authorized reviewers can approve listings.
+- [ ] Unapproved listings cannot be booked.
+- [ ] Invalid dates and unavailable time slots are rejected.
+- [ ] Overlapping bookings cannot both be confirmed.
+- [ ] Secrets are kept out of frontend code and GitHub.
+- [ ] Logout ends access to protected pages and actions.
+- [ ] Server and database permissions are enforced, not just hidden in the UI.
+
+Record each test's result and any failure. These are tests to perform, not claims that security has already been verified.
