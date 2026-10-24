@@ -1,0 +1,122 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>ParkMate</title>
+<style>
+:root{--blue:#4169e1;--blue2:#3556c9;--ink:#0f172a;--mut:#64748b;--line:#e2e8f0;--bg:#f8fafc}
+*{box-sizing:border-box}body{margin:0;font-family:Inter,system-ui,-apple-system,"Segoe UI",sans-serif;background:var(--bg);color:var(--ink)}
+button{font:inherit;cursor:pointer;border:0}a{cursor:pointer}
+.logo{display:flex;align-items:center;gap:12px;font-weight:700;font-size:20px}
+.logo i{width:42px;height:42px;border-radius:12px;background:linear-gradient(135deg,#4169e1,#3aa6a0);display:grid;place-items:center;font-style:normal;font-weight:800;color:#fff}
+/* auth */
+.auth{display:grid;grid-template-columns:1.1fr 1fr;min-height:100vh}
+.hero{color:#fff;padding:52px 64px;display:flex;flex-direction:column;justify-content:space-between;background:radial-gradient(circle at 78% 22%,#2a566055,transparent 38%),linear-gradient(165deg,#1a2f58,#0f1d3e 55%,#0c1733)}
+.hero h1{font-size:clamp(32px,4.2vw,50px);line-height:1.1;margin:0 0 18px;letter-spacing:-.02em}
+.hero p{color:#cbd5e1;max-width:460px;line-height:1.6;margin:0 0 32px}
+.feat{background:#ffffff12;border:1px solid #ffffff1f;border-radius:14px;padding:16px 20px;margin-bottom:14px;max-width:700px}
+.feat b{display:block;margin-bottom:4px}.feat span{color:#cbd5e1;font-size:14px}.hero small{color:#94a3b8}
+.right{display:grid;place-items:center;padding:24px}
+.acard{background:#fff;width:100%;max-width:450px;border-radius:22px;padding:32px;box-shadow:0 24px 60px #0f172a1a;border:1px solid var(--line)}
+.acard h2{margin:0 0 4px;font-size:26px}.sub{color:var(--mut);margin:0 0 22px;font-size:15px}
+.tabs{display:flex;background:#eef2f7;border-radius:999px;padding:6px;margin-bottom:20px}
+.tabs button{flex:1;padding:12px;border-radius:999px;background:none;font-weight:600;color:#475569}
+.tabs button.on{background:#fff;color:var(--blue);box-shadow:0 2px 8px #0f172a14}
+label{display:block;font-size:13px;font-weight:600;margin:14px 0 6px}
+input,select{width:100%;padding:14px;border:1px solid var(--line);border-radius:12px;background:#f8fafc;font:inherit;outline:0}
+input:focus{border-color:var(--blue);background:#fff;box-shadow:0 0 0 3px #4169e11f}
+.btn{background:var(--blue);color:#fff;padding:14px 20px;border-radius:999px;font-weight:600}.btn:hover{background:var(--blue2)}
+.btn.full{width:100%;margin-top:20px;padding:16px}.btn.ghost{background:#eef2ff;color:var(--blue)}.btn.sm{padding:9px 16px;font-size:14px}
+.demo{text-align:center;font-size:13px;color:var(--mut);margin-top:18px;line-height:1.7}.demo b{color:var(--ink)}
+.err{background:#fef2f2;color:#b91c1c;border-radius:10px;padding:10px 12px;font-size:14px;margin-top:14px}
+.ok{background:#ecfdf5;color:#047857;border-radius:10px;padding:10px 12px;font-size:14px;margin-bottom:14px}
+.link{display:block;text-align:center;margin-top:14px;color:var(--blue);font-size:14px;font-weight:600}
+/* app */
+.top{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 28px;background:#fff;border-bottom:1px solid var(--line);position:sticky;top:0;z-index:5;flex-wrap:wrap}
+.top .logo{font-size:18px}.top .logo i{width:34px;height:34px;border-radius:10px}
+.nav{display:flex;gap:6px}.nav a{padding:9px 16px;border-radius:999px;color:#475569;font-weight:600;font-size:14px}.nav a.on{background:#eef2ff;color:var(--blue)}
+.who{display:flex;align-items:center;gap:10px;font-size:14px}.chip{background:#dbeafe;color:#1d4ed8;border-radius:999px;padding:4px 10px;font-size:12px;font-weight:700}
+.avatar{width:34px;height:34px;border-radius:50%;background:linear-gradient(135deg,#4169e1,#3aa6a0);color:#fff;display:grid;place-items:center;font-weight:700}
+.mock{background:#fef3c7;color:#92400e;text-align:center;font-size:12px;padding:5px}
+main{max-width:1000px;margin:0 auto;padding:32px 24px}
+.ph h1{margin:0;font-size:28px;letter-spacing:-.01em}.ph p{color:var(--mut);margin:6px 0 24px}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(290px,1fr));gap:18px}
+.card{background:#fff;border:1px solid var(--line);border-radius:18px;padding:20px;box-shadow:0 4px 14px #0f172a0a}
+.lc{transition:.15s}.lc:hover{transform:translateY(-3px);box-shadow:0 12px 28px #0f172a14}
+.pic{height:90px;border-radius:12px;margin:-4px -4px 14px;background:linear-gradient(135deg,#1e3a6e,#3aa6a0);display:flex;align-items:flex-end;justify-content:space-between;padding:10px 12px;color:#fff;font-weight:700}
+.pic span{background:#ffffff26;border-radius:999px;padding:4px 10px;font-size:13px}
+.lc h3{margin:0 0 4px}.mut{color:var(--mut);font-size:14px}.row{display:flex;gap:10px}.row>*{flex:1}.sp{display:flex;justify-content:space-between;align-items:center;margin-top:16px}
+.search{display:flex;gap:10px;margin-bottom:24px}.search input{flex:1;padding:15px 18px;border-radius:999px;background:#fff}
+.badge{background:#dcfce7;color:#15803d;border-radius:999px;padding:4px 12px;font-size:12px;font-weight:700}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-bottom:24px}.stat b{font-size:28px;display:block}
+.empty{text-align:center;color:var(--mut);padding:48px 16px;background:#fff;border:1px dashed #cbd5e1;border-radius:18px}
+.two{display:grid;grid-template-columns:1.3fr 1fr;gap:20px}.total{font-size:26px;font-weight:700;color:var(--blue)}
+h2.s{margin:28px 0 14px;font-size:20px}
+@media(max-width:860px){.auth{grid-template-columns:1fr}.hero{display:none}.two,.stats{grid-template-columns:1fr}.top{padding:12px 16px}}
+</style></head><body>
+<div id="app"></div>
+<script>
+const P='ps_',L=(k,d)=>JSON.parse(localStorage.getItem(P+k)||'null')??d,S=(k,v)=>localStorage.setItem(P+k,JSON.stringify(v));
+const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const DP='provider@parkmate.com';
+const seed=[{id:1,title:'MG Road Covered Slot',address:'MG Road, Chennai',price:40},{id:2,title:'T Nagar Basement Parking',address:'T Nagar, Chennai',price:30},{id:3,title:'Anna Nagar Gated Spot',address:'Anna Nagar, Chennai',price:25}].map(l=>({...l,owner:DP}));
+const users=()=>{let u=L('users',null);if(!u){u=[{name:'Demo Consumer',email:'consumer@parkmate.com',pw:'demo123'},{name:'Demo Provider',email:DP,pw:'demo123'}];S('users',u)}return u};
+const listings=()=>[...seed,...L('listings',[])];
+let user=L('user',null),mode=L('mode','consumer'),signup=false,err='',msg='',q='';
+const $=id=>document.getElementById(id);
+const go=h=>{location.hash=h;err='';render()};
+const setMode=m=>{mode=m;S('mode',m)};
+function tab(m){setMode(m);document.querySelectorAll('.tabs button').forEach(b=>b.classList.toggle('on',b.dataset.m==m))}
+function login(){
+  const name=$('n')?.value.trim(),email=$('e').value.trim(),pw=$('p').value;err='';
+  if(signup&&!name)err='Please enter your name';else if(!/^\S+@\S+\.\S+$/.test(email))err='Enter a valid email address';else if(pw.length<6)err='Password must be at least 6 characters';
+  if(!err){const u=users();
+    if(signup){if(u.some(x=>x.email==email))err='This email is already registered';else{u.push({name,email,pw});S('users',u);user={name,email}}}
+    else{const f=u.find(x=>x.email==email&&x.pw==pw);if(!f)err='Invalid email or password';else user={name:f.name,email}}
+    if(!err){S('user',user);return go(mode=='consumer'?'/search':'/provider')}}
+  render();$('e').value=email;$('p').value=pw}
+const logout=()=>{localStorage.removeItem(P+'user');user=null;go('/')};
+const swap=()=>{setMode(mode=='consumer'?'provider':'consumer');go(mode=='consumer'?'/search':'/provider')};
+function book(id){const d=$('d').value,h=+$('hr').value,l=listings().find(x=>x.id==id);err='';
+  if(!d)err='Please pick a date';else if(d<new Date().toISOString().slice(0,10))err='Date cannot be in the past';else if(!(h>=1))err='Minimum 1 hour';
+  if(err)return render();
+  S('bookings',[...L('bookings',[]),{id:Date.now(),title:l.title,price:l.price,owner:l.owner,user:user.email,date:d,hours:h}]);msg='Booking confirmed!';go('/my-bookings')}
+function addListing(){const t=$('t').value.trim(),a=$('a').value.trim(),p=+$('pr').value;err='';
+  if(!t||!a)err='Title and address are required';else if(!(p>0))err='Enter a valid hourly price';
+  if(err)return render();
+  S('listings',[...L('listings',[]),{id:Date.now(),title:t,address:a,price:p,owner:user.email}]);msg='Listing published!';render()}
+const E=()=>err?`<div class="err">⚠ ${esc(err)}</div>`:'';
+const M=()=>{const m=msg;msg='';return m?`<div class="ok">✓ ${m}</div>`:''};
+const empty=t=>`<div class="empty">${t}</div>`;
+const card=l=>`<div class="card lc"><div class="pic"><b>P</b><span>₹${l.price}/hr</span></div><h3>${esc(l.title)}</h3><div class="mut">📍 ${esc(l.address)}</div><div class="sp"><span class="badge">Available</span><button class="btn sm" onclick="go('/listing/${l.id}')">View details</button></div></div>`;
+function authView(){return `<div class="auth"><section class="hero"><div class="logo"><i>P</i>ParkMate</div><div><h1>Parking reservations with certainty.</h1><p>Log in to manage listings, review availability evidence, create temporary holds, and recover failed bookings automatically.</p><div class="feat"><b>🚗 Consumers</b><span>Search, hold, confirm, and receive rescue alternatives.</span></div><div class="feat"><b>🏢 Providers</b><span>Publish spaces, manage restrictions, and monitor bookings.</span></div></div><small>© 2026 ParkMate · Prototype · Mock data (browser only)</small></section>
+<section class="right"><div class="acard"><h2>${signup?'Create your account':'Welcome back'}</h2><p class="sub">${signup?'One account works as Consumer and Provider.':'Choose your account type and sign in.'}</p>
+<div class="tabs"><button data-m="consumer" class="${mode=='consumer'?'on':''}" onclick="tab('consumer')">Consumer</button><button data-m="provider" class="${mode=='provider'?'on':''}" onclick="tab('provider')">Provider</button></div>
+${signup?'<label>Name</label><input id="n" placeholder="Your name">':''}<label>Email</label><input id="e" placeholder="you@example.com"><label>Password</label><input id="p" type="password" placeholder="Enter your password" onkeydown="if(event.key=='Enter')login()">${E()}
+<button class="btn full" onclick="login()">${signup?'Sign up':'Log in'}</button>
+<a class="link" onclick="signup=!signup;err='';render()">${signup?'Already have an account? Log in':'New here? Create an account'}</a>
+<div class="demo">Demo accounts:<br>Consumer: <b>consumer@parkmate.com</b> / <b>demo123</b><br>Provider: <b>provider@parkmate.com</b> / <b>demo123</b></div></div></section></div>`}
+function shell(body,route){const c=mode=='consumer';
+  const nav=c?[['/search','Search'],['/my-bookings','My Bookings']]:[['/provider','Provider Listings']];
+  return `<div class="mock">TEMPORARY MOCK DATA - stored in your browser, not connected to the backend</div><header class="top"><div class="logo"><i>P</i>ParkMate</div><nav class="nav">${nav.map(([h,t])=>`<a class="${route.startsWith(h)?'on':''}" onclick="go('${h}')">${t}</a>`).join('')}</nav>
+<div class="who"><span class="chip">${c?'Consumer':'Provider'} mode</span><button class="btn ghost sm" onclick="swap()">Switch to ${c?'Provider':'Consumer'}</button><div class="avatar">${esc(user.name[0].toUpperCase())}</div><a onclick="logout()" class="mut">Logout</a></div></header><main>${body}</main>`}
+function render(){
+  const r=(location.hash||'#/').slice(1),[,p,id]=r.split('/');
+  if(!user){if(p&&p!='login')location.hash='/';return $('app').innerHTML=authView()}
+  if(!p||p=='login')return go(mode=='consumer'?'/search':'/provider');
+  let b='';const l=listings().find(x=>x.id==id);
+  if(p=='search'){const f=listings().filter(x=>(x.title+x.address).toLowerCase().includes(q.toLowerCase()));
+    b=`<div class="ph"><h1>Find parking</h1><p>Search spaces by area or name.</p></div><div class="search"><input id="q" placeholder="Search e.g. T Nagar…" value="${esc(q)}" onkeydown="if(event.key=='Enter'){q=this.value;render()}"><button class="btn" onclick="q=$('q').value;render()">Search</button></div>`+(f.length?`<div class="grid">${f.map(card).join('')}</div>`:empty('No parking spots found. Try another area.'))}
+  else if(p=='listing'||p=='book'){
+    if(!l)b=empty('Listing not found.');
+    else if(p=='listing')b=`<div class="ph"><h1>${esc(l.title)}</h1><p>📍 ${esc(l.address)}</p></div><div class="two"><div class="card"><div class="pic" style="height:170px"><b style="font-size:42px">P</b><span>Available</span></div><h3>About this space</h3><p class="mut">Secure parking space listed by a verified provider. Hourly pricing, instant confirmation.</p></div><div class="card"><div class="total">₹${l.price}<small class="mut"> /hour</small></div><p class="mut">Pick a date and duration on the next step.</p><button class="btn full" onclick="go('/book/${l.id}')">Book this spot</button></div></div>`;
+    else b=`<div class="ph"><h1>Confirm booking</h1><p>${esc(l.title)} · ${esc(l.address)}</p></div><div class="card" style="max-width:460px"><label>Date</label><input id="d" type="date" oninput="tot(${l.price})"><label>Hours</label><input id="hr" type="number" min="1" value="1" oninput="tot(${l.price})">${E()}<div class="sp"><span class="mut">Total</span><span class="total" id="tt">₹${l.price}</span></div><button class="btn full" onclick="book(${l.id})">Confirm booking</button></div>`}
+  else if(p=='my-bookings'){const bk=L('bookings',[]).filter(x=>x.user==user.email).reverse();
+    b=`<div class="ph"><h1>My Bookings</h1><p>Your reservations.</p></div>${M()}`+(bk.length?`<div class="grid">${bk.map(x=>`<div class="card"><span class="badge">Confirmed</span><h3 style="margin:12px 0 4px">${esc(x.title)}</h3><div class="mut">📅 ${esc(x.date)} · ${x.hours} hr</div><div class="total" style="font-size:20px;margin-top:10px">₹${x.price*x.hours}</div></div>`).join('')}</div>`:empty('No bookings yet. Search for a space to get started.'))}
+  else if(p=='provider'){const mine=listings().filter(x=>x.owner==user.email),res=L('bookings',[]).filter(x=>x.owner==user.email).reverse();
+    b=`<div class="ph"><h1>Provider dashboard</h1><p>Publish spaces and monitor reservations.</p></div>${M()}<div class="stats"><div class="card stat"><b>${mine.length}</b><span class="mut">Listings</span></div><div class="card stat"><b>${res.length}</b><span class="mut">Reservations</span></div><div class="card stat"><b>₹${res.reduce((s,x)=>s+x.price*x.hours,0)}</b><span class="mut">Booked revenue</span></div></div>
+<div class="two"><div><h2 class="s" style="margin-top:0">My listings</h2>${mine.length?`<div class="grid" style="grid-template-columns:1fr 1fr">${mine.map(card).join('')}</div>`:empty('No listings yet - add your first one.')}</div>
+<div class="card"><h3 style="margin-top:0">Add a listing</h3><label>Title</label><input id="t" placeholder="e.g. Covered slot"><label>Address</label><input id="a" placeholder="Street, area"><label>Price per hour (₹)</label><input id="pr" type="number" min="1">${E()}<button class="btn full" onclick="addListing()">Publish listing</button></div></div>
+<h2 class="s">Reservations</h2>`+(res.length?`<div class="grid">${res.map(x=>`<div class="card"><b>${esc(x.title)}</b><div class="mut">📅 ${esc(x.date)} · ${x.hours} hr · by ${esc(x.user)}</div></div>`).join('')}</div>`:empty('No reservations yet.'))}
+  else b=empty('Page not found.');
+  $('app').innerHTML=shell(b,'/'+p)}
+const tot=pr=>{$('tt').textContent='₹'+pr*Math.max(+$('hr').value||0,0)};
+addEventListener('hashchange',()=>{err='';render()});render();
+</script></body></html>
