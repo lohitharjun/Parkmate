@@ -2,6 +2,7 @@
 services:
   - type: web
     name: parkmate-api
+    rootDir: backend
     runtime: node
     plan: free
     region: singapore
