@@ -26,7 +26,7 @@ PostgreSQL on Supabase. Source of truth: `supabase/migrations/` (run in order). 
 - `CHECK (end_time > start_time)`.
 - `BEFORE INSERT` trigger: listing must exist (`P0002`), be approved + active and open at that time (`P0001 LISTING_NOT_BOOKABLE`); it **computes `total_price`** and forces `status='confirmed'`.
 - `BEFORE UPDATE` trigger: after creation only `status` can change (`P0003` otherwise).
-- A user cannot book their own listing (`P0004`).
+- A user cannot book their own listing (`PK001`).
 
 ## Listing review rules (database triggers)
 - Approved listing: changing address/latitude/longitude → `pending` again. Rejected listing: editing its content → `pending` (resubmitted, `review_note` kept). An explicit admin decision is never overridden.
