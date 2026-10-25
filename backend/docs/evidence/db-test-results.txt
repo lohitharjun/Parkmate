@@ -1,0 +1,67 @@
+# DB test results - 2026-10-25T09:28:42.004Z
+PASS  booking: first booking inserts
+PASS  price: 2h x 40 = 80.00 computed by DB (client sent 0)
+PASS  price/status: client-sent total_price=999,status=cancelled overridden (40.00, confirmed)
+PASS  overlap: partial overlap rejected with 23P01
+PASS  overlap: identical slot rejected with 23P01
+PASS  overlap: slot contained inside existing rejected with 23P01
+PASS  overlap: slot wrapping existing rejected with 23P01
+PASS  overlap: back-to-back (starts when other ends) allowed
+PASS  overlap: back-to-back (ends when other starts) allowed
+PASS  overlap: same time on a DIFFERENT listing is independent
+PASS  cancel: cancelled booking frees the slot
+PASS  timing: end before start rejected (check constraint 23514)
+PASS  timing: zero-length booking rejected (23514)
+PASS  bookable: pending listing -> LISTING_NOT_BOOKABLE (P0001)
+PASS  bookable: rejected listing -> LISTING_NOT_BOOKABLE
+PASS  bookable: approved but paused (is_active=false) -> LISTING_NOT_BOOKABLE
+PASS  bookable: unknown listing -> LISTING_NOT_FOUND (P0002)
+PASS  availability: booking outside opening hours (10-12 IST) rejected
+PASS  availability: booking straddling opening time rejected
+PASS  availability: booking inside window accepted
+PASS  price: 90 min x 40 = 60.00
+PASS  price: 20 min x 40 = 13.33 (rounded)
+PASS  immutable: booking times cannot be edited after creation (P0003)
+PASS  immutable: booking price cannot be edited (P0003)
+PASS  RLS enabled on all 4 tables
+PASS  RLS anon: cannot see pending/rejected listings
+PASS  RLS anon: CAN see approved listing
+PASS  RLS anon: cannot see any bookings
+PASS  RLS anon: cannot see any profiles
+PASS  RLS anon: can read availability of approved listing
+PASS  RLS: other user cannot see someone else's pending listing
+PASS  RLS: owner sees own pending listing
+PASS  RLS: admin sees pending listing
+PASS  RLS: user can create own listing (defaults to pending)
+PASS  RLS: new listing from client is pending
+PASS  RLS: user cannot create listing already approved
+PASS  RLS: user cannot create listing owned by someone else
+PASS  RLS: owner can edit own listing
+PASS  RLS: owner cannot self-approve (status change blocked)
+PASS  RLS: non-owner edit affects 0 rows and data unchanged
+PASS  RLS: non-admin cannot approve a listing
+PASS  RLS: admin can approve a listing
+PASS  RLS: even admin cannot reassign listing owner from client
+PASS  RLS: clients cannot delete listings
+PASS  RLS bookings: consumer sees only own bookings
+PASS  RLS bookings: another user cannot see consumer's bookings
+PASS  RLS bookings: provider sees bookings on own listings
+PASS  RLS bookings: client cannot insert directly (RLS denies, no row created)
+PASS  rules: booking your own listing is blocked (PK001)
+PASS  RLS bookings: client cannot update directly
+PASS  RLS bookings: client cannot delete directly
+PASS  RLS profiles: user cannot make themselves admin
+PASS  RLS profiles: cannot create own profile as admin
+PASS  RLS profiles: can create own normal profile
+PASS  RLS profiles: user cannot read other users' profiles
+PASS  RLS availability: non-owner cannot add hours to someone else's listing
+PASS  RLS availability: owner can add hours to own listing
+PASS  resubmit: price change keeps an approved listing approved
+PASS  resubmit: moving an approved listing sends it back to pending
+PASS  resubmit: an explicit review decision is never overridden
+PASS  resubmit: pausing a rejected listing does not resubmit it
+PASS  resubmit: editing a rejected listing resubmits it (feedback note kept)
+PASS  resubmit: owner moving an approved listing directly (client) also resets to pending
+PASS  rules: a client cannot fake last_confirmed_at
+
+64/64 passed

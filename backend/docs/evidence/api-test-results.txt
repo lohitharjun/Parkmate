@@ -1,0 +1,33 @@
+# API test results - 2026-10-25T11:59:26.273Z
+✔ AUTH: protected routes reject missing/invalid token with 401 UNAUTHENTICATED (1933.3954ms)
+✔ LISTINGS: create -> 201 pending; owner forced from token; status in body rejected (2272.9532ms)
+✔ LISTINGS: pending is hidden from public/other users, visible to owner & admin (2416.1327ms)
+✔ BOOKING: pending listing is not bookable -> 422 LISTING_NOT_BOOKABLE (520.68ms)
+✔ PERMISSIONS: consumer cannot edit others listing / review; owner cannot self-approve (2953.7334ms)
+✔ ADMIN: invalid decision 400; approve -> 200 approved; now public (1339.0838ms)
+✔ BOOKING: validation errors -> 400; unknown listing -> 404 (1388.0504ms)
+✔ BOOKING: create -> 201 confirmed, price computed by server (2h x 40 = 80), client price ignored (846.7257ms)
+✔ BOOKING: overlapping -> 409 BOOKING_CONFLICT; adjacent (back-to-back) allowed (8058.6118ms)
+✔ BOOKING: 10 SIMULTANEOUS requests for the same slot -> exactly one 201, nine 409 (1474.5859ms)
+✔ SEARCH: booked window excluded, free window included; filters & sorts work (1157.5213ms)
+✔ ALTERNATIVES: excludes the conflicted listing, requires login + params (787.5216ms)
+✔ MY BOOKINGS / PROVIDER BOOKINGS: each sees only their own (1595.6175ms)
+✔ CANCEL: only booking owner; frees the slot; idempotent (1991.6225ms)
+✔ PAUSE: is_active=false -> 422 and hidden from search; reactivate restores (2504.8061ms)
+✔ REJECT: rejected listing is not bookable (2193.2206ms)
+✔ AVAILABILITY: opening hours enforced (IST); owner only (5018.2881ms)
+✔ RULES: booking your own listing -> 403 FORBIDDEN (491.0641ms)
+✔ PUBLIC PAGES: an invalid/expired token on GET /listings/:id is ignored (200), not 401 (1131.5148ms)
+✔ LISTINGS: create with evidence_urls, empty description/rules and inline availability (1512.6668ms)
+✔ APPROVAL BYPASS: moving an approved listing -> pending; price edit keeps approved; rejected edit resubmits (4430.4918ms)
+✔ CONFIDENCE: confirm sets last_confirmed_at (owner only); search/details/alternatives expose freshness + is_demo (2541.6882ms)
+✔ RESCUE: alternatives never include my own listings (405.6718ms)
+✔ HEALTH: both routes OK with DB connected (257.7325ms)
+ℹ tests 24
+ℹ suites 0
+ℹ pass 24
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 49398.4658
