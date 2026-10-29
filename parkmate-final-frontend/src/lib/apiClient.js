@@ -89,9 +89,11 @@ export function getMe(token) {
   return request('/me', { token });
 }
 
-export function getListings({ max_price, lat, lng, max_distance_km, start, end, sort, signal } = {}) {
+export function getListings({ query, vehicle_type, max_price, lat, lng, max_distance_km, start, end, sort, signal } = {}) {
   const hasCoordinates = Number.isFinite(Number(lat)) && Number.isFinite(Number(lng));
-  const query = {
+  const params = {
+    query,
+    vehicle_type,
     max_price,
     start,
     end,
@@ -99,7 +101,7 @@ export function getListings({ max_price, lat, lng, max_distance_km, start, end, 
     ...(['price'].includes(sort) ? { sort } : {}),
     ...(['recommended', 'distance'].includes(sort) && hasCoordinates ? { sort } : {}),
   };
-  return request('/listings', { query, signal });
+  return request('/listings', { query: params, signal });
 }
 
 export function getListing(id, token) {

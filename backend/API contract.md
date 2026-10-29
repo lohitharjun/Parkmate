@@ -37,9 +37,10 @@ Database details: [`schema.md`](./schema.md).
 ## Listings
 
 ### `GET /listings`: search approved listings
-Query params (all optional): `max_price`, `lat`, `lng`, `max_distance_km`, `start`, `end`, `sort` (`recommended` | `price` | `distance`).
+Query params (all optional): `query`, `vehicle_type`, `max_price`, `lat`, `lng`, `max_distance_km`, `start`, `end`, `sort` (`recommended` | `price` | `distance`).
 - `start` + `end`: only return listings free for that whole window.
 - `lat` + `lng`: adds Haversine straight-line `distance_km` to each search result; this is not routing distance or travel time.
+- If an exact search returns no rows and the request includes coordinates plus a valid `start`/`end` window, the backend automatically runs Parking Rescue on approved, active listings free for that window. It retains `vehicle_type`, relaxes the text and maximum-price filters, and limits candidates to 5 km unless `max_distance_km` is provided. It returns up to five results ranked by qualitative freshness/confirmation evidence, then price. Fallback rows include `search_fallback`, `recommendation_reasons`, `confidence`, `freshness`, and `confirmation`. Haversine distance is used only as a radius filter and is not returned as a route-distance claim. Without coordinates or a time window, no fallback is attempted.
 
 ```json
 { "data": [ {

@@ -25,6 +25,18 @@ describe('searchListings', () => {
     ];
     expect(searchListings(rows).map((item) => item.id)).toEqual(['a', 'b']);
   });
+
+  it('keeps backend fallback recommendations and their server ranking', () => {
+    const recommendations = [
+      { id: 'supported', title: 'Adyar Space', price_per_hour: 90, status: 'approved', is_active: true, search_fallback: true },
+      { id: 'limited', title: 'T Nagar Space', price_per_hour: 35, status: 'approved', is_active: true, search_fallback: true },
+    ];
+    expect(searchListings(recommendations, {
+      query: 'Guindy',
+      maxPrice: 40,
+      sort: 'price',
+    }).map((item) => item.id)).toEqual(['supported', 'limited']);
+  });
 });
 
 describe('validateBookingWindow', () => {

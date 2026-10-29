@@ -14,7 +14,7 @@ Supabase JS handles browser sign-in/sign-up. Protected Express calls send `Autho
 | --- | --- | --- |
 | Backend/database health | `GET /health` | Flat `{status, db, time}` response; checked before live marketplace reads/writes. |
 | Current profile | `GET /api/me` | Bearer token; `{ data: { id, full_name, phone, is_admin, email } }`. |
-| Search approved active listings | `GET /api/listings` | Only documented query keys are sent: `max_price`, `start`, `end`, `lat`, `lng`, `max_distance_km`, `sort`. Date range is both values or neither, ISO 8601 UTC. Text/vehicle filtering is client-side because the API has no such query fields. |
+| Search approved active listings | `GET /api/listings` | Sends `query`, `vehicle_type`, `max_price`, `start`, `end`, `lat`, `lng`, `max_distance_km`, and `sort`. Date range is both values or neither, ISO 8601 UTC. If no exact rows are found and the request has destination coordinates and a valid time window, the backend automatically runs Parking Rescue, relaxing text/price preferences while retaining the vehicle filter and time eligibility. |
 | Listing detail | `GET /api/listings/:id` | Public; optional bearer token for own pending/rejected listing. |
 | Create a listing | `POST /api/listings` | Bearer token; sends only contract fields. Required title/address/latitude/longitude/price_per_hour; optional description/rules/vehicle_type/evidence_urls/availability. Never sends status or owner_id. |
 | Edit listing | `PATCH /api/listings/:id` | Bearer token; only owner-editable fields; never sends status. |
@@ -27,6 +27,6 @@ Supabase JS handles browser sign-in/sign-up. Protected Express calls send `Autho
 | Provider reservations | `GET /api/provider/bookings` | Bearer token; optional documented `listing_id`. |
 | Parking Rescue alternatives | `GET /api/alternatives` | Bearer token; required `lat`, `lng`, `start`, `end`; optional `exclude_listing_id`, `max_price`, `radius_km`. |
 
-When live search has no matches, Search offers the same backend alternatives endpoint. The user must provide a valid time window and either destination coordinates or grant browser location access; this frontend does not geocode free-text places. It renders only backend recommendations and their reasons. Demo mode does not silently substitute sample inventory for this backend result.
+When live search has no matches, Search offers a destination-and-time recovery form and sends those inputs to `GET /api/listings`. The backend—not the browser—then applies the Parking Rescue ranking if the exact search has no results. The user must provide a valid time window and either destination coordinates or grant browser location access; this frontend does not geocode free-text places. It renders backend recommendations and their reasons. Demo mode does not silently substitute sample inventory for this backend result.
 
 The adapter translates documented `{error:{code,message}}` results, including `BOOKING_CONFLICT` (409) and `LISTING_NOT_BOOKABLE` (422). No payment, geocoding, text-search endpoint, or live traffic service is implemented because the existing contract does not provide one. The adapter has not been connected to a backend in this project until valid environment settings are supplied and its health check succeeds.

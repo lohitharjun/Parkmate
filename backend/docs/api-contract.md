@@ -46,10 +46,11 @@ Database details: [`schema.md`](./schema.md).
 ## Listings
 
 ### `GET /listings`: search approved listings
-Only `approved` **and** `is_active` listings are returned. Query params (all optional): `max_price`, `lat`, `lng`, `max_distance_km`, `start`, `end`, `sort` (`recommended` | `price` | `distance`).
+Only `approved` **and** `is_active` listings are returned. Query params (all optional): `query`, `vehicle_type`, `max_price`, `lat`, `lng`, `max_distance_km`, `start`, `end`, `sort` (`recommended` | `price` | `distance`).
 - `start` + `end` (both or neither): only return listings with no overlapping booking and inside their opening hours.
 - `lat` + `lng` (both or neither): adds a Haversine straight-line `distance_km` to each result; this is not routing distance or travel time. Required for `sort=distance`, `sort=recommended` and `max_distance_km` (`400` otherwise).
 - Default sort: `recommended` when `lat`/`lng` are given (cheap + close), otherwise `price`. Max 100 results.
+- If an exact search returns no rows and the request includes coordinates plus a valid `start`/`end` window, the backend automatically runs Parking Rescue on approved, active listings that are free for that window. It keeps the vehicle filter, relaxes the text and maximum-price filters, and limits candidates to 5 km unless `max_distance_km` is provided. It returns up to five results ranked by qualitative freshness/confirmation evidence, then price. These rows include `search_fallback`, `recommendation_reasons`, `confidence`, `freshness`, and `confirmation`; Haversine distance is used only as a radius filter and is not included as a route-distance claim. Without coordinates or a time window the backend returns the original empty result rather than guessing.
 
 ```json
 { "data": [ {

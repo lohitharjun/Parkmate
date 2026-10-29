@@ -12,7 +12,7 @@ import { validateBookingWindow } from '../../lib/validation.js';
 const emptyFilters = { query: '', maxPrice: '', vehicleType: '', sort: 'recommended', start: '', end: '' };
 
 export default function SearchPage() {
-  const { search, getAlternatives } = useMarketplace();
+  const { search } = useMarketplace();
   const { isDemoMode, isLiveMode, liveReady, backendStatus } = useAuth();
   const [searchParams] = useSearchParams();
   const location = useLocation();
@@ -193,17 +193,24 @@ export default function SearchPage() {
         });
       }
 
-      const next = await getAlternatives({
-        destination,
+      const next = await search({
+        query: filters.query,
+        vehicleType: filters.vehicleType,
+        maxPrice: filters.maxPrice,
+        sort: 'recommended',
+        latitude: destination.latitude,
+        longitude: destination.longitude,
         startISO: rescueWindowCheck.startISO,
         endISO: rescueWindowCheck.endISO,
-        maxPrice: filters.maxPrice,
       });
       if (requestId !== rescueRequestId.current) return;
-      setRescueRecommendations(Array.isArray(next) ? next : []);
       if (!Array.isArray(next)) {
         throw new Error('The backend returned an invalid recommendation response.');
       }
+      setRescueRecommendations(next.map((listing) => ({
+        listing,
+        reasons: listing.recommendation_reasons || ['Available for the requested time window'],
+      })));
       setRescueSearchCompleted(true);
     } catch (recommendationError) {
       if (requestId === rescueRequestId.current) {
@@ -256,7 +263,7 @@ export default function SearchPage() {
           <label className="field"><span>Sort by</span><select value={filters.sort} onChange={(event) => update('sort', event.target.value)}>{!isLiveMode && <option value="recommended">Recommended</option>}<option value="price">Price: low to high</option><option value="distance" disabled={isLiveMode}>Distance: nearest first{isLiveMode ? ' (coordinates not available)' : ' (sample distances)'}</option></select></label>
           {timeError && <p className="field-error">{timeError}</p>}
           <button className="filter-panel__reset" onClick={clearFilters}><RotateCcw size={14} /> Clear all filters</button>
-          <div className="filter-panel__note"><Filter size={14} /> {isLiveMode ? 'Live results use price sorting because this screen has no verified location coordinates. Search text and vehicle type are refined in the browser; the API has no matching query parameters.' : 'Search text, vehicle type and recommendation are refined in the browser; the documented API has no free-text or vehicle query parameters. Sample distances are illustrative.'}</div>
+          <div className="filter-panel__note"><Filter size={14} /> {isLiveMode ? 'The backend applies text and vehicle filters. Search text is not geocoded, so location-aware recovery needs explicit coordinates and a valid time window.' : 'Search text, vehicle type and recommendation are refined in the browser; sample distances are illustrative.'}</div>
         </aside>
 
         <div className="search-main">

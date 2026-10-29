@@ -10,13 +10,14 @@ export function searchListings(listings, filters = {}) {
       .join(' ')
       .toLocaleLowerCase();
     const price = Number(listing.price_per_hour);
-    const matchesQuery = !needle || searchable.includes(needle);
-    const matchesPrice = Number.isFinite(price) && price <= maxPrice;
+    const matchesQuery = listing.search_fallback === true || !needle || searchable.includes(needle);
+    const matchesPrice = Number.isFinite(price) && (listing.search_fallback === true || price <= maxPrice);
     const matchesVehicle = !vehicle || vehicleFitsListing(vehicle, listing.vehicle_type);
     const matchesAvailable = listing.is_active !== false && (!listing.status || listing.status === 'approved');
     return matchesQuery && matchesPrice && matchesVehicle && matchesAvailable;
   });
 
+  if (results.length > 0 && results.every((listing) => listing.search_fallback === true)) return results;
   if (filters.sort === 'price') {
     results.sort((a, b) => Number(a.price_per_hour) - Number(b.price_per_hour));
   } else if (filters.sort === 'distance') {

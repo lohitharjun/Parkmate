@@ -70,7 +70,11 @@ export function MarketplaceProvider({ children }) {
     }
     assertLiveBackend();
     const apiFilters = {
+      query: filters.query,
+      vehicle_type: filters.vehicleType,
       max_price: filters.maxPrice,
+      lat: filters.latitude,
+      lng: filters.longitude,
       start: filters.startISO,
       end: filters.endISO,
       sort: filters.sort,
