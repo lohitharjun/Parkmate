@@ -1,6 +1,6 @@
 -- ParkMate DB tests: booking constraint, triggers, price rules, availability, RLS.
 -- Run on the DEV project only: Supabase SQL editor (paste whole file) or `npm run test:db`.
--- Needs migrations 001-005 applied. Creates temp users (@dbtest.invalid) and removes ONLY those at the end.
+-- Needs migrations 001-006 applied. Creates temp users (@dbtest.invalid) and removes ONLY those at the end.
 -- (The API test users, e.g. owner@parkmate.test, are never touched.)
 -- Final SELECT is the results table. Concurrency (parallel requests) is tested in tests/api.test.js.
 
@@ -66,6 +66,7 @@ DECLARE
   l_ok uuid; l_pend uuid; l_off uuid; l_hours uuid; l_re1 uuid; l_re2 uuid; l_re3 uuid; b1 uuid; new_l uuid;
   base timestamptz := (date_trunc('day', timezone('Asia/Kolkata', now())) + interval '400 days') AT TIME ZONE 'Asia/Kolkata'; -- midnight IST, far future
   r text; n int; price numeric; st text; ttl text;
+  listing_updated_before timestamptz; listing_updated_after timestamptz;
   ins text := 'INSERT INTO bookings (listing_id,user_id,start_time,end_time,total_price) VALUES (%L,%L,%L,%L,0)';
 BEGIN
   -- ---------- fixtures (as postgres) ----------
@@ -84,6 +85,22 @@ BEGIN
   INSERT INTO listings (owner_id,title,address,latitude,longitude,price_per_hour,status) VALUES (u_owner,'T re2','a',13.0,80.2,40,'approved') RETURNING id INTO l_re2;
   INSERT INTO listings (owner_id,title,address,latitude,longitude,price_per_hour,status) VALUES (u_owner,'T re3','a',13.0,80.2,40,'approved') RETURNING id INTO l_re3;
   INSERT INTO availability (listing_id, day_of_week, open_time, close_time) SELECT l_hours, d, '10:00', '12:00' FROM generate_series(0,6) d;
+
+  SELECT updated_at INTO listing_updated_before FROM listings WHERE id = l_ok;
+  UPDATE listings SET last_confirmed_at = statement_timestamp() WHERE id = l_ok;
+  SELECT updated_at INTO listing_updated_after FROM listings WHERE id = l_ok;
+  PERFORM pg_temp.rec(
+    'freshness: provider confirmation does not rewrite listing timestamp',
+    listing_updated_after = listing_updated_before,
+    listing_updated_before || ' / ' || listing_updated_after
+  );
+  UPDATE listings SET description = 'updated listing details' WHERE id = l_ok;
+  SELECT updated_at INTO listing_updated_after FROM listings WHERE id = l_ok;
+  PERFORM pg_temp.rec(
+    'freshness: listing details update the listing timestamp',
+    listing_updated_after > listing_updated_before,
+    listing_updated_before || ' / ' || listing_updated_after
+  );
 
   -- ================= BOOKING CONSTRAINT / TRIGGERS =================
   r := pg_temp.as_user('postgres', NULL, format(ins, l_ok, u_cons, base + interval '9 hours', base + interval '11 hours'));

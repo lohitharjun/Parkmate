@@ -6,7 +6,7 @@ const { isUuid, parseIso, num, validateListingInput, validateAvailability } = re
 const { distanceSql, freeSql } = require('../lib/geo.sql');
 
 const router = express.Router();
-const PUBLIC_COLS = 'l.id, l.title, l.address, l.latitude, l.longitude, l.price_per_hour, l.last_confirmed_at, l.is_demo';
+const PUBLIC_COLS = 'l.id, l.title, l.address, l.latitude, l.longitude, l.price_per_hour, l.updated_at, l.last_confirmed_at, l.is_demo';
 
 // GET /api/listings  (public search: approved + active only)
 router.get('/', wrap(async (req, res) => {
@@ -71,7 +71,7 @@ router.get('/:id', optionalAuth, wrap(async (req, res) => {
     id: l.id, title: l.title, description: l.description, rules: l.rules, address: l.address,
     latitude: l.latitude, longitude: l.longitude, price_per_hour: l.price_per_hour,
     vehicle_type: l.vehicle_type, is_active: l.is_active, status: l.status,
-    last_confirmed_at: l.last_confirmed_at, is_demo: l.is_demo, availability: av.rows,
+    updated_at: l.updated_at, last_confirmed_at: l.last_confirmed_at, is_demo: l.is_demo, availability: av.rows,
   };
   if (isOwnerOrAdmin) { out.owner_id = l.owner_id; out.review_note = l.review_note; out.evidence_urls = l.evidence_urls || []; }
   res.json({ data: out });

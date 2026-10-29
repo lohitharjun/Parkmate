@@ -246,8 +246,11 @@ test('CONFIDENCE: confirm sets last_confirmed_at (owner only); search/details/al
   const a = await call('GET', `/alternatives?lat=12.95&lng=80.1&start=${w.start_time}&end=${w.end_time}`, 'CONSUMER');
   const alt = a.body.data.find((x) => x.listing.id === l2.id);
   assert.ok(alt, 'confirmed listing should be an alternative');
-  assert.ok('last_confirmed_at' in alt.listing && alt.listing.is_demo === false);
-  assert.ok(alt.reasons.some((x) => /confirmed/i.test(x)), JSON.stringify(alt.reasons));
+  assert.ok('last_confirmed_at' in alt.listing && 'updated_at' in alt.listing && alt.listing.is_demo === false);
+  assert.equal(alt.listing.confirmation, 'recent');
+  assert.ok(['supported', 'limited', 'unknown'].includes(alt.listing.confidence));
+  assert.ok(alt.reasons.includes('Recently confirmed'), JSON.stringify(alt.reasons));
+  assert.equal('distance_km' in alt, false, 'straight-line distance must not be presented as route distance');
 });
 
 test('RESCUE: alternatives never include my own listings', async () => {

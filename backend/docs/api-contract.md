@@ -48,7 +48,7 @@ Database details: [`schema.md`](./schema.md).
 ### `GET /listings`: search approved listings
 Only `approved` **and** `is_active` listings are returned. Query params (all optional): `max_price`, `lat`, `lng`, `max_distance_km`, `start`, `end`, `sort` (`recommended` | `price` | `distance`).
 - `start` + `end` (both or neither): only return listings with no overlapping booking and inside their opening hours.
-- `lat` + `lng` (both or neither): adds `distance_km` to each result. Required for `sort=distance`, `sort=recommended` and `max_distance_km` (`400` otherwise).
+- `lat` + `lng` (both or neither): adds a Haversine straight-line `distance_km` to each result; this is not routing distance or travel time. Required for `sort=distance`, `sort=recommended` and `max_distance_km` (`400` otherwise).
 - Default sort: `recommended` when `lat`/`lng` are given (cheap + close), otherwise `price`. Max 100 results.
 
 ```json
@@ -56,16 +56,17 @@ Only `approved` **and** `is_active` listings are returned. Query params (all opt
   "id": "uuid", "title": "Guindy Metro Lot", "address": "...",
   "latitude": 13.0067, "longitude": 80.2206,
   "price_per_hour": 40, "distance_km": 2.4,
+  "updated_at": "2026-10-24T09:00:00Z",
   "last_confirmed_at": "2026-10-24T09:00:00Z", "is_demo": false
 } ] }
 ```
-(`distance_km` is omitted when `lat`/`lng` were not sent; `last_confirmed_at` can be `null`.)
+(`distance_km` is omitted when `lat`/`lng` were not sent; it is straight-line distance only. `last_confirmed_at` can be `null`.)
 
 ### `GET /listings/:id`: listing details
 Anyone can view approved listings. The owner (and admin) can also view pending/rejected ones. Otherwise `404`.
-Fields: `id, title, description, rules, address, latitude, longitude, price_per_hour, vehicle_type, is_active, status, last_confirmed_at, is_demo, availability: [{day_of_week, open_time, close_time}]` (+ `owner_id`, `review_note`, `evidence_urls` for owner/admin).
+Fields: `id, title, description, rules, address, latitude, longitude, price_per_hour, vehicle_type, is_active, status, updated_at, last_confirmed_at, is_demo, availability: [{day_of_week, open_time, close_time}]` (+ `owner_id`, `review_note`, `evidence_urls` for owner/admin).
 A missing, invalid or expired token on this public route is ignored (treated as anonymous) instead of returning `401`.
-`last_confirmed_at` = when the owner last confirmed the spot is available (freshness); `is_demo = true` means demonstration data and **must be labelled as such in the UI**.
+`updated_at` = last change to listing data/status. `last_confirmed_at` = when the owner last confirmed the spot is available; these timestamps are separate. `is_demo = true` means demonstration data and **must be labelled as such in the UI**.
 
 ### `POST /listings`: create a listing
 Request:
@@ -113,7 +114,7 @@ Admin only (`403` otherwise). Request:
 | Endpoint | Access | Notes |
 |---|---|---|
 | `PATCH /bookings/:id/cancel` | Booking owner | `200` booking with `status: "cancelled"`. Idempotent. `404` if not yours. `400` if the booking already started. Frees the slot. |
-| `GET /alternatives` | Logged in | Parking Rescue. Query: `lat, lng, start, end` (required), `exclude_listing_id`, `max_price`, `radius_km` (default 5). Never includes the caller's own listings. Returns `{ "data": [ { "listing": {id,title,address,latitude,longitude,price_per_hour,last_confirmed_at,is_demo}, "distance_km": 0.8, "reasons": ["Free for your whole time window", "Availability confirmed by the owner in the last 7 days", ...] } ] }`, closest first, max 10, may be empty. Freshness reasons: confirmed ≤ 7 days ago, or "Owner has not confirmed availability recently" (> 30 days / never). |
+| `GET /alternatives` | Logged in | Parking Rescue. Query: `lat, lng, start, end` (required), `exclude_listing_id`, `max_price`, `radius_km` (default 5). Never includes the caller's own listings. Returns up to five eligible records in `{ "data": [{ "listing": {id,title,address,latitude,longitude,price_per_hour,status,is_active,is_available,updated_at,last_confirmed_at,is_demo,confidence,freshness,confirmation}, "reasons": ["Free for your whole time window", "Recently confirmed", "Lower price"] }] }`; may be empty. Haversine distance is used only to filter the search radius and is not returned as route distance. |
 | `POST /listings/:id/confirm` | Owner | "This spot is still available": sets `last_confirmed_at = now`. Returns the listing. `403` if not the owner. |
 | `GET /listings/mine` | Logged in | All my listings, any status. |
 | `PUT /listings/:id/availability` | Owner | Body `{ "windows": [ { "day_of_week": 0-6 (0 = Sunday), "open_time": "HH:MM", "close_time": "HH:MM" } ] }` replaces the weekly opening hours (Asia/Kolkata). `[]` = open 24x7. A booking must fit inside one window on one day. |
@@ -124,6 +125,13 @@ Admin only (`403` otherwise). Request:
 1. `POST /bookings` returns `409 BOOKING_CONFLICT` (or `422`).
 2. Frontend calls `GET /alternatives` with the same destination and time window plus `exclude_listing_id`.
 3. User picks one → `POST /bookings` again. The server re-checks everything; a `409` can happen again.
+
+### Parking Rescue evidence and ranking
+`updated_at` and `last_confirmed_at` are separate evidence. `freshness` is `fresh`, `stale`, or `unknown` using a 24-hour window for `updated_at`; `confirmation` is `recent`, `older`, `unconfirmed`, or `unknown` using the same window for `last_confirmed_at`. `confidence` is `supported` only when both are fresh/recent, `limited` when both timestamps are valid but at least one is older, and `unknown` when either timestamp is unavailable, invalid, or future-dated. These labels are evidence summaries, not probabilities or guarantees of availability.
+
+Ranking is deterministic: confidence first, routing-provider distance when present, then lower hourly price, then listing ID. This endpoint currently has no routing-provider distance, so it ranks by confidence and price after eligibility; Haversine distance is used only for the `radius_km` search filter and is not returned as travel distance. Reasons are emitted only when supported by data. `is_demo: true` and the reason `Demo data — not live inventory` identify synthetic listings.
+
+Eligibility is rechecked in the backend: status must be approved, the listing active, and the requested time window free according to confirmed bookings and opening hours. Booking remains authoritative and can still fail if availability changes after this search. The endpoint does not claim live inventory or real-time route data.
 
 ## Notes for the team
 
