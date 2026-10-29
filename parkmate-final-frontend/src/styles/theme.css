@@ -1,0 +1,627 @@
+/* Light mode intentionally inherits the existing ParkMate evergreen, sage and ivory design. */
+:root {
+  --brand-mark-foreground: #f4f4ed;
+  --brand-mark-background: var(--pine);
+  --brand-mark-border: transparent;
+}
+
+.theme-toggle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  min-height: 35px;
+  padding: 8px 11px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  color: var(--ink-2);
+  background: var(--paper);
+  font-size: 10px;
+  font-weight: 750;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: color .16s ease, background .16s ease, border-color .16s ease, transform .16s ease;
+}
+.theme-toggle:hover { border-color: var(--accent-strong); transform: translateY(-1px); }
+.theme-toggle svg { color: var(--pine); }
+
+.auth-role-switch {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 9px;
+}
+.auth-role-switch button {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 4px;
+  min-width: 0;
+  min-height: 58px;
+  padding: 10px 12px;
+  border: 1px solid #e0e7dd;
+  border-radius: 8px;
+  color: var(--ink);
+  background: #fbfcf8;
+  text-align: left;
+  cursor: pointer;
+  transition: background .16s ease, border-color .16s ease, box-shadow .16s ease;
+}
+.auth-role-switch button.is-selected {
+  border-color: #95ad7d;
+  background: #f0f5e9;
+  box-shadow: 0 0 0 2px #a5bd7a22;
+}
+.auth-role-switch strong { font-size: 11px; }
+.auth-role-switch small { color: var(--muted); font-size: 9px; line-height: 1.4; }
+
+.site-header--public .site-header__inner { justify-content: space-between; }
+.site-header--public .header-actions { margin-left: auto; }
+.site-header--public .main-nav,
+.site-header--public .role-switch,
+.site-header--public .mobile-menu-button { display: none; }
+.site-header--public .brand__mark {
+  color: var(--brand-mark-foreground);
+  background: var(--brand-mark-background);
+  border: 1px solid var(--brand-mark-border);
+}
+.brand__mark { color: var(--brand-mark-foreground); background: var(--brand-mark-background); border: 1px solid var(--brand-mark-border); }
+.brand__word { color: var(--ink); }
+.brand__word small { color: var(--muted); }
+.site-footer .brand__mark { --brand-mark-foreground: var(--pine); --brand-mark-background: var(--lime); }
+.auth-gate-loading {
+  display: grid;
+  min-height: 100vh;
+  place-items: center;
+  padding: 24px;
+  color: var(--muted);
+  background: var(--canvas);
+  font-size: 13px;
+}
+
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --ink: #f2f3f5;
+  --ink-2: #d5d7da;
+  --pine: #d60b43;
+  --muted: #a0a4aa;
+  --muted-2: #7f858d;
+  --line: #282a2e;
+  --line-dark: #383b40;
+  --paper: #111315;
+  --canvas: #000000;
+  --sage: #17191c;
+  --sage-2: #202226;
+  --accent: #e2104b;
+  --accent-strong: #fa1c58;
+  --lime: #ef174f;
+  --clay: #e09a76;
+  --amber: #342919;
+  --danger: #ff7787;
+  --shadow: 0 20px 55px rgba(0, 0, 0, .55);
+  --brand-mark-foreground: #f20c50;
+  --brand-mark-background: #070809;
+  --brand-mark-border: #292126;
+}
+
+html[data-theme="dark"],
+html[data-theme="dark"] body,
+html[data-theme="dark"] #root,
+html[data-theme="dark"] .app-shell {
+  color: #f2f3f5;
+  background: #000000;
+}
+html[data-theme="dark"] ::selection { color: #ffffff; background: #d50842; }
+html[data-theme="dark"] button:focus-visible,
+html[data-theme="dark"] a:focus-visible,
+html[data-theme="dark"] input:focus-visible,
+html[data-theme="dark"] select:focus-visible,
+html[data-theme="dark"] textarea:focus-visible { outline-color: #f32360; }
+
+/* Navigation and the ParkMate wordmark */
+html[data-theme="dark"] .site-header { background: rgba(4, 5, 6, .97); }
+html[data-theme="dark"] .site-header__rule { background: #242629; }
+html[data-theme="dark"] .brand__word,
+html[data-theme="dark"] .brand__word > span { color: #f1f2f3; }
+html[data-theme="dark"] .brand__word small { color: #9a9da2; }
+html[data-theme="dark"] .brand__mark { color: #f20c50; background: #070809; border-color: #292126; box-shadow: inset 0 0 0 1px #f20c5017; }
+html[data-theme="dark"] .main-nav__link,
+html[data-theme="dark"] .account-menu__name,
+html[data-theme="dark"] .icon-button { color: #b4b6ba; }
+html[data-theme="dark"] .main-nav__link:hover,
+html[data-theme="dark"] .main-nav__link.is-active,
+html[data-theme="dark"] .header-signin { color: #f6f6f7; }
+html[data-theme="dark"] .main-nav__link::after { background: #ed0c4b; }
+html[data-theme="dark"] .role-switch { border-color: #282a2e; background: #111315; }
+html[data-theme="dark"] .role-switch button { color: #a4a6ab; }
+html[data-theme="dark"] .role-switch button.is-selected { color: #ffffff; background: #d20841; box-shadow: 0 1px 6px #d2084140; }
+html[data-theme="dark"] .mobile-menu-button { color: #f2f3f5; background: #121416; border-color: #303237; }
+html[data-theme="dark"] .main-nav--open { background: #090a0c; border-color: #282a2e; }
+html[data-theme="dark"] .mobile-nav-extra { border-color: #282a2e; }
+html[data-theme="dark"] .theme-toggle { color: #f0f1f2; background: #111315; border-color: #34363a; }
+html[data-theme="dark"] .theme-toggle svg { color: #ff2a64; }
+html[data-theme="dark"] .site-footer { color: #e7e8eb; background: #08090a; border-color: #282a2e; }
+html[data-theme="dark"] .site-footer .brand__mark { color: #f20c50; background: #08090a; border-color: #30212a; }
+html[data-theme="dark"] .site-footer .brand__word,
+html[data-theme="dark"] .site-footer .brand__word > span { color: #f5f5f6; }
+html[data-theme="dark"] .site-footer .brand__word small,
+html[data-theme="dark"] .site-footer > p,
+html[data-theme="dark"] .site-footer__note { color: #a8aaaf; }
+
+/* Surfaces and typography */
+html[data-theme="dark"] :is(.auth-card, .detail-layout, .booking-panel, .booking-row, .booking-tabs, .listing-card, .filter-panel, .map-preview, .surface-card, .provider-metrics article, .managed-listing, .create-listing-panel, .provider-reservation, .rescue-card, .home-search-band, .state-panel, .empty-state, .search-page__count, .reservation-preview-row, .provider-next-step, .booking-tabs button.is-current) {
+  color: #f0f1f3;
+  background-color: #111315;
+  border-color: #282a2e;
+}
+html[data-theme="dark"] :is(.page-intro h1, .home-hero h1, .home-story h2, .home-bottom h2, .detail-copy h1, .auth-card h1, .not-found h1, .section-heading h2, .listing-card__title, .booking-row__titleline h2, .provider-reservation__title h2, .home-search-band__item strong, .home-rescue h2, .booking-panel__summary h2, .create-listing-panel__head h2, .detail-copy__description h2) { color: #f1f2f4; }
+html[data-theme="dark"] :is(.page-intro h1 em, .home-hero h1 em, .home-story h2 em, .home-bottom h2 em, .auth-card h1 em) { color: #ff4275; }
+html[data-theme="dark"] :is(.eyebrow, .page-intro p, .home-hero__lead, .home-story__intro p, .home-story__steps article p, .home-search-band__item div > span, .detail-copy__address, .detail-copy__description p, .detail-copy__detail, .booking-row__address, .booking-row__times, .booking-panel__summary p, .booking-form__total span, .booking-form__total small, .provider-metrics__label, .provider-metrics article > span:last-child, .provider-reservation__main p, .provider-reservation__time, .provider-reservation__side small, .muted-note, .auth-card__lead, .auth-form__switch, .auth-card__privacy, .site-footer__note, .not-found p) { color: #a2a5aa; }
+html[data-theme="dark"] .eyebrow { color: #a7a9ae; }
+html[data-theme="dark"] .auth-card__eyebrow { color: #c3c5c9; }
+html[data-theme="dark"] .auth-card__icon { color: #ff2d66; background: #241018; }
+html[data-theme="dark"] .auth-card__privacy { border-color: #292b2f; }
+html[data-theme="dark"] .auth-form__switch a,
+html[data-theme="dark"] .text-link,
+html[data-theme="dark"] .back-link,
+html[data-theme="dark"] .header-signin { color: #ff3b71; }
+html[data-theme="dark"] .text-link:hover,
+html[data-theme="dark"] .back-link:hover,
+html[data-theme="dark"] .header-signin:hover { color: #ff789b; }
+html[data-theme="dark"] .auth-aside {
+  color: #f1f2f4;
+  border-color: #33202a;
+  background: radial-gradient(circle at 80% 15%, #3a1021 0, transparent 42%), linear-gradient(145deg, #111214, #08090a 72%);
+}
+html[data-theme="dark"] .auth-aside::before { border-color: #fa1c5840; }
+html[data-theme="dark"] .auth-aside::after { border-color: #fa1c585e; }
+html[data-theme="dark"] .auth-aside__quote-mark,
+html[data-theme="dark"] .auth-aside__foot span,
+html[data-theme="dark"] .auth-aside > p em { color: #fa2a64; }
+html[data-theme="dark"] .auth-aside > p,
+html[data-theme="dark"] .auth-aside__foot strong { color: #f1f2f4; }
+html[data-theme="dark"] .auth-aside__route { border-color: #e11a506e; }
+html[data-theme="dark"] .auth-aside__route span { border-color: #17191c; background: #db1048; box-shadow: 0 0 0 1px #ec1c59; }
+html[data-theme="dark"] .auth-aside__foot { border-color: #32232a; }
+
+/* Controls, fields, notices and state labels */
+html[data-theme="dark"] :is(.field, .field > span, .field legend, .role-choice legend, .check-line, .time-pair label) { color: #d0d2d5; }
+html[data-theme="dark"] :is(.field input, .field select, .field textarea, .time-pair input, .hero-search input, .reservation-toolbar select) {
+  color: #f0f1f3;
+  border-color: #34373b;
+  background-color: #141619;
+  color-scheme: dark;
+}
+html[data-theme="dark"] :is(.field input::placeholder, .field textarea::placeholder) { color: #777c83; }
+html[data-theme="dark"] .field select { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' fill='none' viewBox='0 0 12 12'%3E%3Cpath d='m2 4 4 4 4-4' stroke='%23a2a5aa' stroke-width='1.4' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E"); }
+html[data-theme="dark"] :is(.field input:focus, .field select:focus, .field textarea:focus, .time-pair input:focus) { border-color: #e7144e; box-shadow: 0 0 0 3px #e7144e35; }
+html[data-theme="dark"] .button--primary { color: #ffffff; background: #d50942; box-shadow: 0 6px 16px #d5094230; }
+html[data-theme="dark"] .button--primary:hover:not(:disabled) { color: #ffffff; background: #f20f50; }
+html[data-theme="dark"] :is(.button--secondary, .button--outline, .button--light) { color: #f2f3f5; border-color: #373a3f; background: #17191c; }
+html[data-theme="dark"] :is(.button--secondary:hover:not(:disabled), .button--outline:hover:not(:disabled)) { border-color: #ef174f; background: #241017; }
+html[data-theme="dark"] .button--text { color: #fa3a70; }
+html[data-theme="dark"] .theme-toggle { box-shadow: none; }
+html[data-theme="dark"] .auth-role-switch button { color: #f1f2f4; border-color: #34363a; background: #151719; }
+html[data-theme="dark"] .auth-role-switch button small { color: #a4a7ad; }
+html[data-theme="dark"] .auth-role-switch button.is-selected { color: #ffffff; border-color: #e20c49; background: #28101a; box-shadow: 0 0 0 2px #ed17492b; }
+html[data-theme="dark"] .role-choice__options label { color: #f1f2f4; border-color: #34363a; background: #151719; }
+html[data-theme="dark"] .inline-notice,
+html[data-theme="dark"] .inline-notice--info { color: #c0c3c8; border-color: #36383d; background: #17191b; }
+html[data-theme="dark"] .inline-notice--success { color: #b7e0bf; border-color: #25452c; background: #101c13; }
+html[data-theme="dark"] .inline-notice--error { color: #ffc0c5; border-color: #54252e; background: #241114; }
+html[data-theme="dark"] .mode-banner--demo,
+html[data-theme="dark"] .mode-banner--live,
+html[data-theme="dark"] .mode-banner--checking,
+html[data-theme="dark"] .mode-banner--error { color: #d1d3d6; background: #121416; border-bottom: 1px solid #26282c; }
+html[data-theme="dark"] .source-badge--demo { color: #e1cba7; border-color: #4c3b25; background: #241d13; }
+html[data-theme="dark"] .source-badge--live { color: #a9d9ae; border-color: #294530; background: #132018; }
+html[data-theme="dark"] .status-chip { color: #c6c8cc; background: #202226; }
+html[data-theme="dark"] .status-chip--confirmed,
+html[data-theme="dark"] .status-chip--approved { color: #b8e3bb; background: #142018; }
+html[data-theme="dark"] .status-chip--pending { color: #efd4a3; background: #282113; }
+html[data-theme="dark"] .status-chip--cancelled,
+html[data-theme="dark"] .status-chip--rejected { color: #ffc2c4; background: #291518; }
+html[data-theme="dark"] .status-chip--paused { color: #c3c5c9; background: #24262a; }
+
+/* Cards, artwork, map, booking and provider workspaces */
+html[data-theme="dark"] :is(.listing-card, .booking-row, .provider-reservation, .surface-card, .provider-metrics article, .managed-listing, .create-listing-panel, .booking-panel, .detail-layout, .rescue-card) { box-shadow: 0 6px 18px rgba(0, 0, 0, .28); }
+html[data-theme="dark"] :is(.listing-card__footer, .booking-panel__summary, .detail-copy__description, .home-story__steps, .home-story__steps article, .booking-tabs, .bookings-separation, .provider-reservation, .managed-listing__meta, .availability-editor, .availability-form, .listing-edit, .listing-edit__form, .mini-listing, .provider-next-step) { border-color: #292b2f; }
+html[data-theme="dark"] .listing-card__title { color: #f1f2f4; }
+html[data-theme="dark"] .listing-card__title:hover { color: #ff4779; }
+html[data-theme="dark"] .listing-card__address,
+html[data-theme="dark"] .listing-card__price span,
+html[data-theme="dark"] .listing-card__kind,
+html[data-theme="dark"] .detail-copy__price span,
+html[data-theme="dark"] .detail-copy__status,
+html[data-theme="dark"] .booking-row__side > strong,
+html[data-theme="dark"] .booking-panel__price strong,
+html[data-theme="dark"] .booking-form__total strong,
+html[data-theme="dark"] .provider-reservation__side > strong,
+html[data-theme="dark"] .provider-metrics article > strong,
+html[data-theme="dark"] .mini-listing > div:nth-child(2) > strong { color: #eceef0; }
+html[data-theme="dark"] .listing-art,
+html[data-theme="dark"] .listing-art--sage,
+html[data-theme="dark"] .listing-art--clay,
+html[data-theme="dark"] .listing-art--blue,
+html[data-theme="dark"] .listing-art--sand,
+html[data-theme="dark"] .listing-art--forest,
+html[data-theme="dark"] .listing-detail-art { background-color: #121518; }
+html[data-theme="dark"] .listing-art--sage,
+html[data-theme="dark"] .listing-detail-art--sage { background-image: linear-gradient(135deg, #1b2420, #121518); }
+html[data-theme="dark"] .listing-art--clay,
+html[data-theme="dark"] .listing-detail-art--clay { background-image: linear-gradient(135deg, #261b1b, #151619); }
+html[data-theme="dark"] .listing-art--blue,
+html[data-theme="dark"] .listing-detail-art--blue { background-image: linear-gradient(135deg, #171e25, #121518); }
+html[data-theme="dark"] .listing-art--sand,
+html[data-theme="dark"] .listing-detail-art--sand { background-image: linear-gradient(135deg, #242018, #151619); }
+html[data-theme="dark"] .listing-art--forest,
+html[data-theme="dark"] .listing-detail-art--forest { background-image: linear-gradient(135deg, #18221c, #121518); }
+html[data-theme="dark"] .listing-art__grid { opacity: .07; }
+html[data-theme="dark"] .listing-art__road,
+html[data-theme="dark"] .detail-art__road { border-color: #34383c; background: #23272b; box-shadow: inset 0 0 0 8px #191c1f, inset 0 0 0 9px #34383c; }
+html[data-theme="dark"] .listing-art__building,
+html[data-theme="dark"] .detail-art__home { border-color: #3a3d41; background: #25282c; }
+html[data-theme="dark"] .listing-art__building i,
+html[data-theme="dark"] .detail-art__home i { border-color: #42464b; background: #17191c; }
+html[data-theme="dark"] .listing-art__pin,
+html[data-theme="dark"] .detail-art__pin { color: #ffffff; background: #d10a42; }
+html[data-theme="dark"] .listing-art__distance { color: #d5d7da; border-color: #414449; background: #111315e8; }
+html[data-theme="dark"] .listing-art__sample { color: #f0d5a8; background: #302516ed; }
+html[data-theme="dark"] .map-preview { background: #111315; }
+html[data-theme="dark"] .map-preview__top { color: #f1f2f4; background: #111315; }
+html[data-theme="dark"] .map-preview__canvas { background-color: #171a1d; }
+html[data-theme="dark"] .map-preview__icon { color: #ff3a70; background: #281019; }
+html[data-theme="dark"] .map-preview__streets path { stroke: #30343a; }
+html[data-theme="dark"] .map-preview__streets .map-preview__main-road { stroke: #3e434a; }
+html[data-theme="dark"] .map-preview__streets .map-preview__main-road-line { stroke: #81868d; opacity: .48; }
+html[data-theme="dark"] .map-block { border-color: #30343a; background: #1b1e22; }
+html[data-theme="dark"] .map-block--two,
+html[data-theme="dark"] .map-block--four { background: #1e1c22; }
+html[data-theme="dark"] .map-pin { color: #e0e1e5; border-color: #42464c; background: #191b1f; box-shadow: 0 4px 12px #0008; }
+html[data-theme="dark"] .map-pin > svg { fill: #421524; color: #ff3a70; }
+html[data-theme="dark"] .map-pin--primary { color: #fff; border-color: #fa2c63; background: #d10a42; }
+html[data-theme="dark"] .map-pin--primary > svg { color: #fff; }
+html[data-theme="dark"] .map-preview__label { color: #c3c6ca; background: #111315ed; }
+html[data-theme="dark"] .map-preview__empty { color: #b6bac0; }
+html[data-theme="dark"] .map-preview__foot { color: #a7abb1; border-color: #292c30; background: #111315; }
+html[data-theme="dark"] .search-map-tip,
+html[data-theme="dark"] .search-disclaimer { color: #a5a9af; }
+html[data-theme="dark"] .search-map-tip__dot { background: #f22960; }
+html[data-theme="dark"] .filter-panel__note,
+html[data-theme="dark"] .availability-editor__form,
+html[data-theme="dark"] .availability-form,
+html[data-theme="dark"] .listing-edit__form { color: #c2c4c8; background: #17191c; }
+html[data-theme="dark"] .home-search-band__item + .home-search-band__item { border-color: #2a2c30; }
+html[data-theme="dark"] .home-search-band__icon,
+html[data-theme="dark"] .mini-listing__mark,
+html[data-theme="dark"] .managed-listing__icon,
+html[data-theme="dark"] .booking-row__mark,
+html[data-theme="dark"] .provider-reservation__avatar { color: #ff3a70; background: #261018; }
+html[data-theme="dark"] .home-rescue { color: #f2f3f5; border: 1px solid #40202b; background: #171014; }
+html[data-theme="dark"] .home-rescue h2,
+html[data-theme="dark"] .home-rescue p { color: #f0f1f3; }
+html[data-theme="dark"] .home-rescue__mark { color: #ff3770; background: #2a1019; }
+html[data-theme="dark"] .rescue-page .page-intro { color: #f0f1f3; border: 1px solid #37212a; background: radial-gradient(circle at 88% 30%, #3a1020 0, transparent 40%), #101113; }
+html[data-theme="dark"] .rescue-page .page-intro h1 { color: #f2f3f5; }
+html[data-theme="dark"] .rescue-page .page-intro p { color: #b9bbc0; }
+html[data-theme="dark"] .rescue-page .page-intro .eyebrow { color: #ff3f74; }
+html[data-theme="dark"] .rescue-conflict-card,
+html[data-theme="dark"] .dashboard-demo-note { color: #e5d1b4; border-color: #493925; background: #211b12; }
+html[data-theme="dark"] .rescue-conflict-card strong,
+html[data-theme="dark"] .rescue-conflict-card p,
+html[data-theme="dark"] .rescue-conflict-card small { color: #e5d1b4; }
+html[data-theme="dark"] .rescue-start { color: #f1f2f4; border-color: #303338; background: #141619; }
+html[data-theme="dark"] .rescue-card__reasons { border-color: #2b2d31; }
+html[data-theme="dark"] .rescue-card__reasons > strong,
+html[data-theme="dark"] .rescue-card__reasons > span,
+html[data-theme="dark"] .rescue-footer-note,
+html[data-theme="dark"] .reservation-toolbar__count { color: #a7a9ae; }
+html[data-theme="dark"] .rescue-card__bullet { background: #fa1c58; }
+html[data-theme="dark"] .bookings-separation { color: #a7a9ae; background: #121416; }
+html[data-theme="dark"] .bookings-separation a { color: #ff4779; }
+html[data-theme="dark"] .booking-cancel { color: #ff8492; }
+html[data-theme="dark"] .day-pills button { color: #d2d4d7; border-color: #36393d; background: #17191c; }
+html[data-theme="dark"] .day-pills button.is-selected { color: #ffffff; border-color: #d50942; background: #d50942; }
+html[data-theme="dark"] .check-line input { accent-color: #e6114d; }
+html[data-theme="dark"] .hero-search { border-color: #303338; background: #111315; }
+html[data-theme="dark"] .hero-search input { color: #f1f2f4; }
+html[data-theme="dark"] .home-hero__visual { background-color: #111315; background-blend-mode: multiply; border-color: #292b30; }
+html[data-theme="dark"] .home-hero__visual > img { filter: brightness(.72) saturate(.78); }
+html[data-theme="dark"] .hero-photo__badge { color: #f1f2f4; border-color: #34363a; background: #111315e8; }
+html[data-theme="dark"] .hero-photo__caption small { color: #e0e1e3; }
+html[data-theme="dark"] .home-story__steps { border-color: #292b2f; }
+html[data-theme="dark"] .home-story__steps article { border-color: #292b2f; }
+html[data-theme="dark"] .state-panel--error { color: #ffc0c5; border-color: #54252e; background: #241114; }
+html[data-theme="dark"] .empty-state { border-color: #33363a; }
+html[data-theme="dark"] .empty-state__icon,
+html[data-theme="dark"] .create-listing-panel__icon { color: #ff3970; background: #241018; }
+html[data-theme="dark"] .auth-gate-loading { color: #b0b3b7; background: #000; }
+
+@media (max-width: 480px) {
+  .theme-toggle { width: 36px; min-width: 36px; min-height: 36px; padding: 0; }
+  .theme-toggle span { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; }
+  .site-header--public .site-header__inner { width: calc(100% - 28px); gap: 10px; }
+  .site-header--public .theme-toggle { width: 36px; }
+}
+
+
+.mobile-role-switch {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 9px;
+  padding: 12px 0 8px;
+}
+.mobile-role-switch button {
+  min-height: 40px;
+  border: 1px solid #dce2d9;
+  border-radius: 8px;
+  color: #40584a;
+  background: #fffefa;
+  font-size: 11px;
+  font-weight: 750;
+  cursor: pointer;
+}
+.mobile-role-switch button.is-selected {
+  color: #ffffff;
+  border-color: var(--pine);
+  background: var(--pine);
+}
+html[data-theme="dark"] .mobile-role-switch button {
+  color: #f1f2f4;
+  border-color: #34363a;
+  background: #151719;
+}
+html[data-theme="dark"] .mobile-role-switch button.is-selected {
+  color: #ffffff;
+  border-color: #e20c49;
+  background: #d20841;
+  box-shadow: 0 1px 6px #d2084140;
+}
+
+/* ---- Fix: location icon overlapping typed text (specificity beat by redesign.css) ---- */
+.field .input-with-icon > svg,
+.filter-panel .field .input-with-icon > svg { left: 13px; width: 16px; height: 16px; z-index: 1; }
+.field .input-with-icon > input,
+.filter-panel .field .input-with-icon > input,
+.filter-panel .field .input-with-icon input[type='text'] { padding-left: 40px; }
+
+/* ---- Dark mode: auth photo overlays must contrast with the background ---- */
+html[data-theme="dark"] .auth-aside > p,
+html[data-theme="dark"] .auth-aside__foot {
+  color: #14161a;
+  background: #f5f5f7f2;
+  border: 1px solid #ffffff;
+  box-shadow: 0 8px 28px #000a;
+  backdrop-filter: blur(6px);
+}
+html[data-theme="dark"] .auth-aside > p em { color: #d50842; }
+html[data-theme="dark"] .auth-aside__foot span { color: #d50842; }
+html[data-theme="dark"] .auth-aside__foot strong { color: #14161a; }
+html[data-theme="dark"] .auth-aside__quote-mark { color: #fff; text-shadow: 0 2px 14px #000; }
+
+/* ---- Dark mode: remove leftover green tints, use neutral charcoal + brand pink/red ---- */
+html[data-theme="dark"] .inline-notice--success { color: #e4e6e9; border-color: #3a3d42; background: #16181b; }
+html[data-theme="dark"] .source-badge--live { color: #ff6d92; border-color: #4a2432; background: #1f1217; }
+html[data-theme="dark"] .status-chip--confirmed,
+html[data-theme="dark"] .status-chip--approved { color: #ff8aa8; background: #261319; }
+html[data-theme="dark"] .listing-detail-art--sage { background-image: linear-gradient(135deg, #1d1f23, #121518); }
+html[data-theme="dark"] .listing-detail-art--forest { background-image: linear-gradient(135deg, #1a1c20, #121518); }
+html[data-theme="dark"] .home-hero__visual::after {
+  background: linear-gradient(180deg, transparent 0%, rgba(8, 9, 11, .35) 55%, rgba(4, 5, 6, .88) 100%);
+}
+html[data-theme="dark"] .listing-detail-art::after {
+  background: linear-gradient(180deg, transparent, rgba(4, 5, 6, .85));
+}
+html[data-theme="dark"] .detail-art__image-label { color: #f1f2f4; border-color: #34363a; background: #111315e8; }
+html[data-theme="dark"] .hero-photo__badge svg { color: #ff3a70; }
+html[data-theme="dark"] .home-hero__trust svg,
+html[data-theme="dark"] .filter-panel__heading svg,
+html[data-theme="dark"] .search-below > span svg,
+html[data-theme="dark"] .detail-copy__status svg,
+html[data-theme="dark"] .detail-copy__detail svg { color: #ff3a70; }
+html[data-theme="dark"] .home-story__steps article > span { color: #ff3a70; }
+
+/* ---- Photos: real parking images, no illustrated car / ellipse art ---- */
+.listing-art__grid, .listing-art__road, .listing-art__building, .listing-art__pin,
+.auth-aside::before, .auth-aside::after, .auth-aside__route, .auth-aside__quote-mark { display: none !important; }
+.listing-art, .listing-art--sage, .listing-art--clay, .listing-art--blue, .listing-art--sand, .listing-art--forest { background-image: none; }
+.listing-art__photo, .parking-photo-fallback { background: #23272c; }
+.listing-art__photo { filter: none; }
+.parking-photo-fallback { position: absolute; inset: 0; display: block; width: 100%; height: 100%; }
+.listing-art::after { position: absolute; inset: 45% 0 0; z-index: 1; background: linear-gradient(180deg, transparent, rgba(8, 10, 12, .45)); content: ''; pointer-events: none; }
+
+/* thumbnails inside small cards */
+.booking-row__mark, .mini-listing__mark, .managed-listing__icon { position: relative; overflow: hidden; padding: 0; }
+.booking-row__mark img, .mini-listing__mark img, .managed-listing__icon img,
+.booking-row__mark .parking-photo-fallback, .mini-listing__mark .parking-photo-fallback, .managed-listing__icon .parking-photo-fallback { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+.booking-row__mark { border-radius: 12px; }
+
+/* sign-in photo panel: quote + small feature chips so it doesn't feel empty */
+.auth-aside__chips { position: relative; z-index: 3; display: flex; flex-wrap: wrap; gap: 8px; margin: 14px 0 0; padding: 0; list-style: none; }
+.auth-aside__chips li { display: inline-flex; align-items: center; gap: 6px; padding: 7px 11px; border: 1px solid #ffffff55; border-radius: 99px; color: #fff; background: #0b0d10a8; backdrop-filter: blur(6px); font-size: 11px; font-weight: 700; }
+.auth-aside { justify-content: space-between; }
+.auth-aside > p { margin: 0; padding-top: 14px; }
+.auth-aside__foot { margin-top: auto; }
+
+/* dark mode price contrast (was dark green on dark) */
+html[data-theme="dark"] .listing-card__price strong,
+html[data-theme="dark"] .detail-copy__price strong,
+html[data-theme="dark"] .booking-panel__price strong,
+html[data-theme="dark"] .booking-row__side > strong,
+html[data-theme="dark"] .rescue-card__foot > strong,
+html[data-theme="dark"] .provider-reservation__side > strong { color: #ffffff; }
+html[data-theme="dark"] .listing-card__price span { color: #a2a5aa; }
+html[data-theme="dark"] .auth-aside__chips li { color: #fff; border-color: #ffffff44; background: #0b0d10b3; }
+html[data-theme="dark"] .booking-row__mark, html[data-theme="dark"] .mini-listing__mark, html[data-theme="dark"] .managed-listing__icon { background: #202226; border-color: #202226; }
+
+/* ==========================================================================
+   Dark-mode contrast pass (all pages)
+   Light-theme greens (#2x-#8x green on white) were leaking into dark mode and
+   were nearly invisible on #111315. Everything below is brighter, high-contrast.
+   Palette: primary text #f4f5f7 · secondary #bfc2c8 · accent pink #ff5c8a
+   ========================================================================== */
+
+/* --- Primary text: titles, prices, names, numbers --- */
+html[data-theme="dark"] :is(
+  .mini-listing > div:nth-child(2) > strong,
+  .mini-listing__right > strong,
+  .reservation-preview-row > div > strong,
+  .reservation-preview-row > strong,
+  .provider-next-step h2,
+  .provider-next-step > strong,
+  .managed-listing__identity h3,
+  .managed-listing__meta > span:first-child strong,
+  .managed-listing__meta > span:first-child,
+  .availability-form__title,
+  .listing-card__title,
+  .listing-card__price strong,
+  .detail-copy__price strong,
+  .booking-panel__price strong,
+  .booking-form__total strong,
+  .booking-row__side > strong,
+  .provider-reservation__side > strong,
+  .provider-metrics article > strong,
+  .rescue-card__foot > strong,
+  .hero-visual__caption,
+  .state-panel--error strong,
+  .rescue-conflict-card strong
+) { color: #f4f5f7; }
+
+/* --- Secondary text: addresses, dates, captions, helper copy --- */
+html[data-theme="dark"] :is(
+  .mini-listing p,
+  .mini-listing__right small,
+  .reservation-preview-row p,
+  .provider-next-step p,
+  .managed-listing__identity p,
+  .managed-listing__meta,
+  .managed-listing__last-confirmed,
+  .create-listing-panel > .muted-note,
+  .listing-edit__notice,
+  .listing-card__kind,
+  .listing-card__address,
+  .listing-card__price span,
+  .detail-copy__address,
+  .detail-copy__price span,
+  .booking-panel__price span,
+  .booking-form__total span,
+  .booking-form__vehicle small,
+  .booking-tabs button,
+  .booking-tabs button span,
+  .rescue-start p,
+  .rescue-card__foot > strong small,
+  .rescue-card__reasons > span,
+  .field small,
+  .empty-state p,
+  .home-hero__trust,
+  .search-toolbar__query,
+  .search-toolbar__source,
+  .search-below > span,
+  .filter-panel__reset,
+  .state-panel--loading,
+  .state-panel--error p,
+  .hero-visual__block b,
+  .hero-visual__park span,
+  .hero-visual__label,
+  .rescue-conflict-card p,
+  .rescue-conflict-card small
+) { color: #bfc2c8; }
+
+html[data-theme="dark"] .booking-tabs button.is-current { color: #ffffff; }
+html[data-theme="dark"] .booking-tabs button span { background: #24262a; }
+
+/* --- Accent: icons, links, small highlights (bright pink instead of dark green) --- */
+html[data-theme="dark"] :is(
+  .input-with-icon > svg,
+  .hero-search > svg,
+  .search-toolbar__query svg,
+  .listing-card__kind svg,
+  .detail-copy__address svg,
+  .detail-copy__detail svg,
+  .detail-copy__status svg,
+  .home-story__steps article > div > svg,
+  .home-search-band__icon,
+  .auth-card__privacy svg,
+  .managed-listing__last-confirmed svg,
+  .provider-reservation__time svg,
+  .provider-metrics article > span:last-child svg,
+  .search-below > span svg,
+  .home-hero__trust svg,
+  .filter-panel__heading svg,
+  .map-preview__icon,
+  .map-pin > svg,
+  .empty-state__icon,
+  .round-arrow,
+  .password-field button
+) { color: #ff6b94; }
+
+html[data-theme="dark"] :is(
+  .home-search-band__item > a,
+  .bookings-separation a,
+  .detail-copy__status,
+  .listing-card__title:hover,
+  .hero-visual__caption em,
+  .hero-visual__label strong,
+  .hero-visual__pin b
+) { color: #ff5c8a; }
+html[data-theme="dark"] .round-arrow:hover { color: #fff; background: #d50942; }
+
+/* --- Avatars & icon tiles (dark tint bg + bright glyph) --- */
+html[data-theme="dark"] :is(
+  .reservation-preview-row__avatar,
+  .provider-reservation__avatar,
+  .provider-next-step__icon,
+  .rescue-start > span
+) { color: #ff6b94; background: #2b121c; box-shadow: inset 0 0 0 1px #5a1c30; }
+
+html[data-theme="dark"] :is(.mini-listing__mark--clay, .managed-listing__icon--clay) { color: #f0b48f; background: #2a1d15; }
+html[data-theme="dark"] :is(.mini-listing__mark--blue, .managed-listing__icon--blue) { color: #8fd0dc; background: #14262b; }
+html[data-theme="dark"] :is(.mini-listing__mark--sand, .managed-listing__icon--sand) { color: #efd48e; background: #2a2412; }
+html[data-theme="dark"] :is(.mini-listing__mark--forest, .managed-listing__icon--forest) { color: #9fdba9; background: #14251a; }
+
+/* --- Badges / chips with tinted backgrounds --- */
+html[data-theme="dark"] .account-menu__name i { color: #ffe3b0; background: #3a2c14; }
+html[data-theme="dark"] .source-badge--demo { color: #ffe3b0; border-color: #6a5330; background: #2e2415; }
+html[data-theme="dark"] .source-badge--live { color: #b9f0c0; border-color: #2f5a39; background: #12251a; }
+html[data-theme="dark"] .status-chip { color: #e0e2e6; background: #2a2d32; }
+html[data-theme="dark"] :is(.status-chip--confirmed, .status-chip--approved) { color: #ffffff; background: #4a1527; box-shadow: inset 0 0 0 1px #8d2447; }
+html[data-theme="dark"] .status-chip--pending { color: #ffe3b0; background: #3a2c14; }
+html[data-theme="dark"] :is(.status-chip--cancelled, .status-chip--rejected) { color: #ffd0d3; background: #3a1a1f; }
+html[data-theme="dark"] .status-chip--paused { color: #d6d8dc; background: #2a2d32; }
+html[data-theme="dark"] :is(.dashboard-demo-note, .booking-panel__sim > span, .detail-art__caption, .listing-art__sample, .rescue-conflict-card__icon) { color: #ffe3b0; background: #2e2415; border-color: #5a4724; }
+html[data-theme="dark"] .eyebrow--pill { color: #d0d3d8; background: #17191c; border-color: #34363a; }
+html[data-theme="dark"] .hero-visual__park { color: #9fdba9; background: #14251a; }
+html[data-theme="dark"] .hero-visual__label { background: #17191cf2; }
+html[data-theme="dark"] .listing-edit__notice { background: #17191c; border-color: #34363a; }
+
+/* --- Banners / notices / errors --- */
+html[data-theme="dark"] .account-menu__error { color: #ff9aa5; }
+html[data-theme="dark"] .state-panel--error strong { color: #ffc2c8; }
+html[data-theme="dark"] .state-panel--error p { color: #e5a8ae; }
+html[data-theme="dark"] .booking-cancel { color: #ff8f9c; }
+html[data-theme="dark"] .mode-banner--demo,
+html[data-theme="dark"] .mode-banner--live,
+html[data-theme="dark"] .mode-banner--checking,
+html[data-theme="dark"] .mode-banner--error { color: #e4e6ea; }
+html[data-theme="dark"] .inline-notice,
+html[data-theme="dark"] .inline-notice--info { color: #d3d6db; }
+html[data-theme="dark"] .text-link,
+html[data-theme="dark"] .back-link,
+html[data-theme="dark"] .button--text,
+html[data-theme="dark"] .auth-form__switch a { color: #ff6b94; }
+
+/* --- Footer / small print --- */
+html[data-theme="dark"] .site-footer > p,
+html[data-theme="dark"] .site-footer__note,
+html[data-theme="dark"] .search-map-tip,
+html[data-theme="dark"] .search-disclaimer,
+html[data-theme="dark"] .rescue-footer-note,
+html[data-theme="dark"] .bookings-separation,
+html[data-theme="dark"] .map-preview__foot,
+html[data-theme="dark"] .map-preview__label,
+html[data-theme="dark"] .map-preview__empty,
+html[data-theme="dark"] .listing-art__distance { color: #bfc2c8; }
+
+/* --- Nav / inactive controls --- */
+html[data-theme="dark"] :is(.main-nav__link, .account-menu__name, .icon-button) { color: #d0d3d8; }
+html[data-theme="dark"] .role-switch button { color: #c4c7cc; }
+html[data-theme="dark"] .eyebrow { color: #c4c7cc; }

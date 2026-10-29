@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 1100" preserveAspectRatio="xMidYMid slice" fill="none">
+  <defs><linearGradient id="g" x1="0" y1="0" x2="0" y2="1100" gradientUnits="userSpaceOnUse"><stop stop-color="#2b2f35"/><stop offset="1" stop-color="#14161a"/></linearGradient></defs>
+  <rect width="900" height="1100" fill="url(#g)"/>
+  <g stroke="#ffffff" stroke-opacity=".16" stroke-width="6"><path d="M150 1100V420M450 1100V420M750 1100V420"/></g>
+</svg>
