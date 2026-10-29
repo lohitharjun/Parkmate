@@ -3,7 +3,7 @@
 ## Layout
 ```
 docs/        api-contract.md, schema.md, VERIFICATION.md, DEPLOYMENT.md, BLOCKERS.md, evidence/
-supabase/    schema.sql (snapshot of 001-005), migrations/001-005, seed.sql, tests/db_tests.sql
+supabase/    schema.sql (snapshot of 001-006), migrations/001-006, seed.sql, tests/db_tests.sql
 src/         server.js, app.js, env.js, auth.js, db.js, errors.js, routes/*, lib/*
 tests/       validate.test.js (unit), api.test.js (live integration)
 scripts/     run-db-tests.js, run-api-tests.js, health-evidence.js, secret-scan.sh

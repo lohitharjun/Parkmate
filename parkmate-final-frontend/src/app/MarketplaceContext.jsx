@@ -70,7 +70,11 @@ export function MarketplaceProvider({ children }) {
     }
     assertLiveBackend();
     const apiFilters = {
+      query: filters.query,
+      vehicle_type: filters.vehicleType,
       max_price: filters.maxPrice,
+      lat: filters.latitude,
+      lng: filters.longitude,
       start: filters.startISO,
       end: filters.endISO,
       sort: filters.sort,
@@ -265,17 +269,30 @@ export function MarketplaceProvider({ children }) {
     return cancelled;
   }, [isDemoMode, requireToken]);
 
-  const getAlternatives = useCallback(async ({ listing, startISO, endISO, maxPrice }) => {
+  const getAlternatives = useCallback(async ({ listing, destination, startISO, endISO, maxPrice }) => {
     if (!isDemoMode) {
       const token = await requireToken();
+      const latitude = destination?.latitude ?? listing?.latitude;
+      const longitude = destination?.longitude ?? listing?.longitude;
+      if (!Number.isFinite(latitude) || !Number.isFinite(longitude)) {
+        throw new ApiError('A valid destination is required to request backend recommendations.', {
+          status: 400,
+          code: 'VALIDATION_ERROR',
+        });
+      }
       return apiGetAlternatives(token, {
-        lat: listing.latitude,
-        lng: listing.longitude,
+        lat: latitude,
+        lng: longitude,
         start: startISO,
         end: endISO,
-        exclude_listing_id: listing.id,
+        exclude_listing_id: listing?.id,
         max_price: maxPrice,
         radius_km: 5,
+      });
+    }
+    if (!listing) {
+      throw new ApiError('Backend recommendations are unavailable in demo mode. Switch to live mode to use actual backend listings.', {
+        code: 'BACKEND_UNAVAILABLE',
       });
     }
     const candidates = searchListings(demoListings.filter((candidate) => (

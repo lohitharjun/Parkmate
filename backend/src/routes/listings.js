@@ -4,9 +4,10 @@ const { requireAuth, optionalAuth } = require('../auth');
 const { bad, notFound, forbidden, wrap } = require('../errors');
 const { isUuid, parseIso, num, validateListingInput, validateAvailability } = require('../lib/validate');
 const { distanceSql, freeSql } = require('../lib/geo.sql');
+const { recommendParking } = require('../lib/parking-rescue');
 
 const router = express.Router();
-const PUBLIC_COLS = 'l.id, l.title, l.address, l.latitude, l.longitude, l.price_per_hour, l.last_confirmed_at, l.is_demo';
+const PUBLIC_COLS = 'l.id, l.title, l.address, l.latitude, l.longitude, l.price_per_hour, l.updated_at, l.last_confirmed_at, l.is_demo';
 
 // GET /api/listings  (public search: approved + active only)
 router.get('/', wrap(async (req, res) => {
@@ -14,6 +15,20 @@ router.get('/', wrap(async (req, res) => {
   const params = [];
   const add = (v) => { params.push(v); return `$${params.length}`; };
   const where = [`l.status = 'approved'`, `l.is_active = true`];
+  if (q.query !== undefined) {
+    if (typeof q.query !== 'string') throw bad('query must be a string');
+    const query = q.query.trim();
+    if (query.length > 120) throw bad('query must be 120 characters or fewer');
+    if (query) {
+      where.push(`strpos(lower(concat_ws(' ', l.title, l.address, l.description, l.vehicle_type)), lower(${add(query)})) > 0`);
+    }
+  }
+  if (q.vehicle_type !== undefined) {
+    if (typeof q.vehicle_type !== 'string') throw bad('vehicle_type must be a string');
+    const vehicleType = q.vehicle_type.trim();
+    if (vehicleType.length > 50) throw bad('vehicle_type must be 50 characters or fewer');
+    if (vehicleType) where.push(`strpos(lower(coalesce(l.vehicle_type, '')), lower(${add(vehicleType)})) > 0`);
+  }
 
   const hasGeo = q.lat !== undefined || q.lng !== undefined;
   let lat, lng;
@@ -24,10 +39,12 @@ router.get('/', wrap(async (req, res) => {
   }
   if (q.max_price !== undefined) where.push(`l.price_per_hour <= ${add(num(q.max_price, 'max_price', { min: 0, allowString: true }))}`);
   if ((q.start === undefined) !== (q.end === undefined)) throw bad('start and end must be given together');
+  let start, end;
   if (q.start !== undefined) {
-    const s = parseIso(q.start, 'start'), e = parseIso(q.end, 'end');
-    if (e <= s) throw bad('end must be after start');
-    where.push(freeSql(add(s.toISOString()), add(e.toISOString())));
+    start = parseIso(q.start, 'start');
+    end = parseIso(q.end, 'end');
+    if (end <= start) throw bad('end must be after start');
+    where.push(freeSql(add(start.toISOString()), add(end.toISOString())));
   }
 
   let distExpr = 'NULL::numeric';
@@ -48,6 +65,50 @@ router.get('/', wrap(async (req, res) => {
   sql += ` ORDER BY ${order} LIMIT 100`;
 
   const { rows } = await pool.query(sql, params);
+  if (rows.length === 0 && hasGeo && q.start !== undefined) {
+    const radiusKm = q.max_distance_km === undefined
+      ? 5
+      : num(q.max_distance_km, 'max_distance_km', { min: 0, allowString: true });
+    const fallbackParams = [lat, lng, start.toISOString(), end.toISOString(), radiusKm];
+    const fallbackWhere = [
+      `l.status = 'approved'`,
+      `l.is_active = true`,
+      freeSql('$3', '$4'),
+      `${distanceSql('$1', '$2')} <= $5`,
+    ];
+    if (q.vehicle_type !== undefined && String(q.vehicle_type).trim()) {
+      fallbackParams.push(String(q.vehicle_type).trim());
+      fallbackWhere.push(`strpos(lower(coalesce(l.vehicle_type, '')), lower($${fallbackParams.length})) > 0`);
+    }
+    const { rows: candidates } = await pool.query(
+      `SELECT ${PUBLIC_COLS}, l.status, l.is_active, TRUE AS is_available
+       FROM listings l
+       WHERE ${fallbackWhere.join(' AND ')}`,
+      fallbackParams,
+    );
+    const { recommendations } = recommendParking(candidates.map((row) => ({
+      ...row,
+      price_per_hour: Number(row.price_per_hour),
+    })), { limit: 5 });
+    const candidatesById = new Map(candidates.map((row) => [row.id, row]));
+    const data = recommendations.map((recommendation) => {
+      const row = candidatesById.get(recommendation.id);
+      return {
+        ...row,
+        price_per_hour: Number(row.price_per_hour),
+        is_available: true,
+        search_fallback: true,
+        confidence: recommendation.confidence,
+        freshness: recommendation.freshness,
+        confirmation: recommendation.confirmation,
+        recommendation_reasons: [
+          'Available for the requested time window',
+          ...recommendation.reasons,
+        ],
+      };
+    });
+    return res.json({ data });
+  }
   res.json({ data: rows.map((r) => (hasGeo ? r : (({ distance_km, ...rest }) => rest)(r))) });
 }));
 
@@ -71,7 +132,7 @@ router.get('/:id', optionalAuth, wrap(async (req, res) => {
     id: l.id, title: l.title, description: l.description, rules: l.rules, address: l.address,
     latitude: l.latitude, longitude: l.longitude, price_per_hour: l.price_per_hour,
     vehicle_type: l.vehicle_type, is_active: l.is_active, status: l.status,
-    last_confirmed_at: l.last_confirmed_at, is_demo: l.is_demo, availability: av.rows,
+    updated_at: l.updated_at, last_confirmed_at: l.last_confirmed_at, is_demo: l.is_demo, availability: av.rows,
   };
   if (isOwnerOrAdmin) { out.owner_id = l.owner_id; out.review_note = l.review_note; out.evidence_urls = l.evidence_urls || []; }
   res.json({ data: out });

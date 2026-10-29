@@ -29,7 +29,11 @@ function lastRequest() {
 describe('ParkMate API contract adapter', () => {
   it('uses only documented listing search keys under the /api prefix', async () => {
     await api.getListings({
+      query: 'Guindy',
+      vehicle_type: 'sedan',
       max_price: 60,
+      lat: 13.0067,
+      lng: 80.2206,
       start: '2026-10-27T08:00:00.000Z',
       end: '2026-10-27T10:00:00.000Z',
       sort: 'price',
@@ -39,7 +43,11 @@ describe('ParkMate API contract adapter', () => {
     expect(url.origin).toBe('https://parkmate-api.example');
     expect(url.pathname).toBe('/api/listings');
     expect(Object.fromEntries(url.searchParams.entries())).toEqual({
+      query: 'Guindy',
+      vehicle_type: 'sedan',
       max_price: '60',
+      lat: '13.0067',
+      lng: '80.2206',
       start: '2026-10-27T08:00:00.000Z',
       end: '2026-10-27T10:00:00.000Z',
       sort: 'price',
@@ -93,6 +101,23 @@ describe('ParkMate API contract adapter', () => {
       radius_km: '5',
     });
     expect(options.headers.Authorization).toBe('Bearer supabase-test-access-token');
+  });
+
+  it('requests empty-search alternatives without inventing an excluded listing', async () => {
+    await api.getAlternatives('supabase-test-access-token', {
+      lat: 13.0067,
+      lng: 80.2206,
+      start: '2026-10-27T08:00:00.000Z',
+      end: '2026-10-27T10:00:00.000Z',
+    });
+    const { url } = lastRequest();
+    expect(url.pathname).toBe('/api/alternatives');
+    expect(Object.fromEntries(url.searchParams.entries())).toEqual({
+      lat: '13.0067',
+      lng: '80.2206',
+      start: '2026-10-27T08:00:00.000Z',
+      end: '2026-10-27T10:00:00.000Z',
+    });
   });
 
   it('checks the flat /health payload documented by the Express app', async () => {

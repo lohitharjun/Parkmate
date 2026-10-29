@@ -148,12 +148,13 @@ html[data-theme="dark"] .site-footer > p,
 html[data-theme="dark"] .site-footer__note { color: #a8aaaf; }
 
 /* Surfaces and typography */
-html[data-theme="dark"] :is(.auth-card, .detail-layout, .booking-panel, .booking-row, .booking-tabs, .listing-card, .filter-panel, .map-preview, .surface-card, .provider-metrics article, .managed-listing, .create-listing-panel, .provider-reservation, .rescue-card, .home-search-band, .state-panel, .empty-state, .search-page__count, .reservation-preview-row, .provider-next-step, .booking-tabs button.is-current) {
+html[data-theme="dark"] :is(.auth-card, .detail-layout, .booking-panel, .booking-row, .booking-tabs, .listing-card, .filter-panel, .map-preview, .surface-card, .provider-metrics article, .managed-listing, .create-listing-panel, .provider-reservation, .rescue-card, .search-rescue-fallback, .home-search-band, .state-panel, .empty-state, .search-page__count, .reservation-preview-row, .provider-next-step, .booking-tabs button.is-current) {
   color: #f0f1f3;
   background-color: #111315;
   border-color: #282a2e;
 }
-html[data-theme="dark"] :is(.page-intro h1, .home-hero h1, .home-story h2, .home-bottom h2, .detail-copy h1, .auth-card h1, .not-found h1, .section-heading h2, .listing-card__title, .booking-row__titleline h2, .provider-reservation__title h2, .home-search-band__item strong, .home-rescue h2, .booking-panel__summary h2, .create-listing-panel__head h2, .detail-copy__description h2) { color: #f1f2f4; }
+html[data-theme="dark"] :is(.page-intro h1, .home-hero h1, .home-story h2, .home-bottom h2, .detail-copy h1, .auth-card h1, .not-found h1, .section-heading h2, .listing-card__title, .booking-row__titleline h2, .provider-reservation__title h2, .home-search-band__item strong, .home-rescue h2, .booking-panel__summary h2, .create-listing-panel__head h2, .detail-copy__description h2, .search-rescue-fallback h2) { color: #f1f2f4; }
+html[data-theme="dark"] .search-rescue-fallback p { color: #a2a5aa; }
 html[data-theme="dark"] :is(.page-intro h1 em, .home-hero h1 em, .home-story h2 em, .home-bottom h2 em, .auth-card h1 em) { color: #ff4275; }
 html[data-theme="dark"] :is(.eyebrow, .page-intro p, .home-hero__lead, .home-story__intro p, .home-story__steps article p, .home-search-band__item div > span, .detail-copy__address, .detail-copy__description p, .detail-copy__detail, .booking-row__address, .booking-row__times, .booking-panel__summary p, .booking-form__total span, .booking-form__total small, .provider-metrics__label, .provider-metrics article > span:last-child, .provider-reservation__main p, .provider-reservation__time, .provider-reservation__side small, .muted-note, .auth-card__lead, .auth-form__switch, .auth-card__privacy, .site-footer__note, .not-found p) { color: #a2a5aa; }
 html[data-theme="dark"] .eyebrow { color: #a7a9ae; }

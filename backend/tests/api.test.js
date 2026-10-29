@@ -42,7 +42,7 @@ test('AUTH: protected routes reject missing/invalid token with 401 UNAUTHENTICAT
 });
 
 test('LISTINGS: create -> 201 pending; owner forced from token; status in body rejected', async () => {
-  const body = { title: 'TEST Guindy Metro Lot', address: 'Guindy, Chennai', latitude: 13.0067, longitude: 80.2206, price_per_hour: 40 };
+  const body = { title: 'TEST Guindy Metro Lot', address: 'Guindy, Chennai', latitude: 13.0067, longitude: 80.2206, price_per_hour: 40, vehicle_type: 'fallback-api-test-vehicle' };
   let r = await call('POST', '/listings', 'OWNER', { ...body, status: 'approved' });
   assert.strictEqual(r.status, 400);
   r = await call('POST', '/listings', 'OWNER', { ...body, owner_id: '00000000-0000-0000-0000-000000000000' });
@@ -130,6 +130,13 @@ test('SEARCH: booked window excluded, free window included; filters & sorts work
   const mine = r.body.data.find((l) => l.id === listing.id);
   assert.ok(mine && typeof mine.distance_km === 'number');
   assert.strictEqual((await call('GET', '/listings?max_price=1', null)).body.data.some((l) => l.id === listing.id), false);
+  r = await call('GET', `/listings?max_price=1&vehicle_type=fallback-api-test-vehicle&start=${f.start_time}&end=${f.end_time}&lat=13.0067&lng=80.2206&max_distance_km=0.1`, null);
+  const fallback = r.body.data.find((l) => l.id === listing.id);
+  assert.ok(fallback, 'empty exact search should fall back to eligible nearby listings');
+  assert.strictEqual(fallback.search_fallback, true);
+  assert.ok(fallback.recommendation_reasons.includes('Available for the requested time window'));
+  assert.ok(['supported', 'limited', 'unknown'].includes(fallback.confidence));
+  assert.strictEqual('distance_km' in fallback, false, 'fallback must not present Haversine distance as route distance');
   assert.strictEqual((await call('GET', '/listings?sort=distance', null)).status, 400);
   assert.strictEqual((await call('GET', '/listings?sort=bogus', null)).status, 400);
   assert.strictEqual((await call('GET', '/listings?start=2027-01-01T10:00:00Z', null)).status, 400);
@@ -246,8 +253,11 @@ test('CONFIDENCE: confirm sets last_confirmed_at (owner only); search/details/al
   const a = await call('GET', `/alternatives?lat=12.95&lng=80.1&start=${w.start_time}&end=${w.end_time}`, 'CONSUMER');
   const alt = a.body.data.find((x) => x.listing.id === l2.id);
   assert.ok(alt, 'confirmed listing should be an alternative');
-  assert.ok('last_confirmed_at' in alt.listing && alt.listing.is_demo === false);
-  assert.ok(alt.reasons.some((x) => /confirmed/i.test(x)), JSON.stringify(alt.reasons));
+  assert.ok('last_confirmed_at' in alt.listing && 'updated_at' in alt.listing && alt.listing.is_demo === false);
+  assert.equal(alt.listing.confirmation, 'recent');
+  assert.ok(['supported', 'limited', 'unknown'].includes(alt.listing.confidence));
+  assert.ok(alt.reasons.includes('Recently confirmed'), JSON.stringify(alt.reasons));
+  assert.equal('distance_km' in alt, false, 'straight-line distance must not be presented as route distance');
 });
 
 test('RESCUE: alternatives never include my own listings', async () => {
