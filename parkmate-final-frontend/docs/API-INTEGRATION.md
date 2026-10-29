@@ -27,4 +27,6 @@ Supabase JS handles browser sign-in/sign-up. Protected Express calls send `Autho
 | Provider reservations | `GET /api/provider/bookings` | Bearer token; optional documented `listing_id`. |
 | Parking Rescue alternatives | `GET /api/alternatives` | Bearer token; required `lat`, `lng`, `start`, `end`; optional `exclude_listing_id`, `max_price`, `radius_km`. |
 
+When live search has no matches, Search offers the same backend alternatives endpoint. The user must provide a valid time window and either destination coordinates or grant browser location access; this frontend does not geocode free-text places. It renders only backend recommendations and their reasons. Demo mode does not silently substitute sample inventory for this backend result.
+
 The adapter translates documented `{error:{code,message}}` results, including `BOOKING_CONFLICT` (409) and `LISTING_NOT_BOOKABLE` (422). No payment, geocoding, text-search endpoint, or live traffic service is implemented because the existing contract does not provide one. The adapter has not been connected to a backend in this project until valid environment settings are supplied and its health check succeeds.

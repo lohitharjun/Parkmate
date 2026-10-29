@@ -129,6 +129,12 @@
 .round-arrow { display: grid; place-items: center; width: 29px; height: 29px; border: 1px solid #dce5d9; border-radius: 50%; color: #54775a; transition: background .14s ease; }
 .round-arrow:hover { color: #fff; background: var(--pine); }
 .search-map-column { position: sticky; top: 110px; }
+.search-rescue-fallback { display: grid; gap: 16px; margin-top: 16px; padding: 20px; border: 1px solid #dfe7db; border-radius: 12px; background: #fffefa; }
+.search-rescue-fallback h2 { margin: 6px 0; color: var(--ink); font-size: 18px; letter-spacing: -.4px; }
+.search-rescue-fallback p { max-width: 640px; margin: 0; color: var(--muted); font-size: 11px; line-height: 1.65; }
+.search-rescue-fallback__form { display: grid; gap: 13px; max-width: 650px; }
+.search-rescue-fallback__coordinates, .search-rescue-fallback__times { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+.search-rescue-fallback__form .button { justify-self: start; }
 .map-preview { overflow: hidden; border: 1px solid #dfe6db; border-radius: 11px; background: #f5f5e8; }
 .map-preview__top { display: flex; align-items: center; justify-content: space-between; padding: 13px 14px; background: #fffefa; }
 .map-preview__top .eyebrow, .map-preview__top strong { display: block; }
@@ -467,6 +473,7 @@
 
   .search-page, .detail-page, .bookings-page, .rescue-page, .provider-page { padding-top: 33px; }
   .search-results-layout { grid-template-columns: 1fr; }
+  .search-rescue-fallback__coordinates, .search-rescue-fallback__times { grid-template-columns: 1fr; }
   .listing-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 9px; }
   .listing-art { min-height: 122px; }
   .listing-card__body { padding: 10px; }

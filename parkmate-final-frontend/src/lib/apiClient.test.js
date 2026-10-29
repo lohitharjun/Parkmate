@@ -95,6 +95,23 @@ describe('ParkMate API contract adapter', () => {
     expect(options.headers.Authorization).toBe('Bearer supabase-test-access-token');
   });
 
+  it('requests empty-search alternatives without inventing an excluded listing', async () => {
+    await api.getAlternatives('supabase-test-access-token', {
+      lat: 13.0067,
+      lng: 80.2206,
+      start: '2026-10-27T08:00:00.000Z',
+      end: '2026-10-27T10:00:00.000Z',
+    });
+    const { url } = lastRequest();
+    expect(url.pathname).toBe('/api/alternatives');
+    expect(Object.fromEntries(url.searchParams.entries())).toEqual({
+      lat: '13.0067',
+      lng: '80.2206',
+      start: '2026-10-27T08:00:00.000Z',
+      end: '2026-10-27T10:00:00.000Z',
+    });
+  });
+
   it('checks the flat /health payload documented by the Express app', async () => {
     fetchMock.mockResolvedValueOnce({
       ok: true,
