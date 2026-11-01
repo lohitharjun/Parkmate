@@ -8,17 +8,17 @@ copy .env.example .env      # Mac/Linux: cp .env.example .env
 Fill `.env` (DATABASE_URL = **Session pooler** URI, SUPABASE_URL, SUPABASE_ANON_KEY, TEST_PASSWORD). The server refuses to start and tells you which variable is missing or still a `YOUR_...` placeholder.
 
 ## 1. Database / migrations (Supabase → SQL Editor)
-Fresh project: run `supabase/schema.sql` once. Existing dev project: run the missing files of `supabase/migrations/` in order (`002` … `005`). Never both ways on the same database.
+Fresh project: run `supabase/schema.sql` once. Existing dev project: run the missing files of `supabase/migrations/` in order (`002` … `006`). Never both ways on the same database.
 
 ## 2. DB tests (booking constraint, triggers, price, availability, RLS, review rules)
 ```powershell
 npm run test:db
 ```
-Expected: `64/64 passed`. Output is also saved (UTF-8) to `docs/evidence/db-test-results.txt`.
+Expected: `66/66 passed`. Output is also saved (UTF-8) to `docs/evidence/db-test-results.txt`.
 
 ## 3. Unit tests (no DB needed)
 ```powershell
-npm run test:unit        # expected: 12 pass, 0 fail
+npm run test:unit        # unit and Parking Rescue tests; expected: 0 failures
 ```
 
 ## 4. Health, DB connected and disconnected

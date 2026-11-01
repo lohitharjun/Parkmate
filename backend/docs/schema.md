@@ -1,6 +1,6 @@
 # ParkMate database schema
 
-PostgreSQL on Supabase. Source of truth: `supabase/migrations/` (run in order). `supabase/schema.sql` is a generated snapshot of 001–005 for a fresh project. **Never run both on the same database.**
+PostgreSQL on Supabase. Source of truth: `supabase/migrations/` (run in order). `supabase/schema.sql` is a generated snapshot of 001–006 for a fresh project. **Never run both on the same database.**
 
 | File | What it does |
 |---|---|
@@ -9,13 +9,16 @@ PostgreSQL on Supabase. Source of truth: `supabase/migrations/` (run in order). 
 | `003_booking_guard_and_rls.sql` | booking triggers, `listing_is_open()`, `is_admin()`, RLS policies |
 | `004_grants.sql` | table privileges for `anon`/`authenticated` (RLS then filters rows) |
 | `005_rules_and_resubmit.sql` | block booking your own listing, re-review when an approved listing moves / a rejected one is edited, clients can't fake `last_confirmed_at` |
+| `006_listing_freshness.sql` | add `updated_at` and maintain it for listing changes independently of provider confirmations |
 | `supabase/seed.sql` | demo listings only (`is_demo = true`) |
-| `supabase/tests/db_tests.sql` | 64 automated checks of constraint, triggers, RLS |
+| `supabase/tests/db_tests.sql` | 66 automated checks of constraint, triggers, RLS, and freshness tracking |
 
 ## Tables
 **profiles** `id` (= auth.users.id), `full_name`, `phone`, `is_admin`, `created_at`. Admins are promoted by SQL only: `UPDATE profiles SET is_admin = true WHERE id = '<uuid>';`
 
-**listings** `id`, `owner_id → profiles`, `title`, `description`, `rules`, `address`, `latitude`, `longitude`, `price_per_hour` (> 0), `vehicle_type`, `evidence_urls[]`, `status` (`pending|approved|rejected`), `is_active`, `review_note`, `reviewed_by`, `last_confirmed_at`, `is_demo`, `created_at`. **Bookable = `status='approved' AND is_active`.**
+**listings** `id`, `owner_id → profiles`, `title`, `description`, `rules`, `address`, `latitude`, `longitude`, `price_per_hour` (> 0), `vehicle_type`, `evidence_urls[]`, `status` (`pending|approved|rejected`), `is_active`, `review_note`, `reviewed_by`, `last_confirmed_at`, `is_demo`, `created_at`, `updated_at`. **Bookable = `status='approved' AND is_active`.**
+
+`updated_at` tracks changes to listing details/status. An owner availability confirmation changes only `last_confirmed_at`, so confirmation is not inferred from listing freshness. Existing rows get `created_at` as their migration baseline; rows without a creation timestamp remain unknown. This conservative baseline does not claim that a listing was recently edited before the migration.
 
 **availability** `listing_id`, `day_of_week` (0 = Sunday), `open_time`, `close_time`. No rows = open 24x7. Times are Asia/Kolkata.
 
@@ -30,7 +33,7 @@ PostgreSQL on Supabase. Source of truth: `supabase/migrations/` (run in order). 
 
 ## Listing review rules (database triggers)
 - Approved listing: changing address/latitude/longitude → `pending` again. Rejected listing: editing its content → `pending` (resubmitted, `review_note` kept). An explicit admin decision is never overridden.
-- Clients using the Supabase key cannot change `status`, `reviewed_by`, `review_note`, `is_demo`, `last_confirmed_at` or `owner_id`; only the backend/admin can.
+- Clients using the Supabase key cannot change `status`, `reviewed_by`, `review_note`, `is_demo`, `last_confirmed_at` or `owner_id`; only the backend/admin can. `updated_at` is maintained by a database trigger.
 
 ## RLS (protects direct Supabase access with the anon / user key)
 The Express backend connects as the table owner, which bypasses RLS, so it enforces the same rules in code. RLS is the safety net for anything else.

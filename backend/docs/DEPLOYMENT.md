@@ -10,7 +10,7 @@ Nothing here can be done from the code alone: it needs your Render, Supabase and
 
 ## 1. Which database will the live site use?
 Use a **separate production Supabase project** (recommended) or, for a demo, your dev project. On whichever one the live site uses, in the SQL editor:
-1. Fresh project: run `supabase/schema.sql` once. (If tables from the old 001 already exist: run `002`…`005` in order, never `schema.sql` on top.)
+1. Fresh project: run `supabase/schema.sql` once. (If tables from the old 001 already exist: run missing migrations `002`…`006` in order, never `schema.sql` on top.)
 2. Run `supabase/migrations/004_grants.sql` content only if you ran migrations separately (it is already inside `schema.sql`).
 3. Optional demo data: create one user in Authentication → Users, `INSERT INTO profiles (id) SELECT id FROM auth.users LIMIT 1;`, then run `supabase/seed.sql`. Demo rows have `is_demo = true`; the frontend must label them as demonstration data.
 4. Promote an admin (after that person has signed up):

@@ -37,9 +37,10 @@ Database details: [`schema.md`](./schema.md).
 ## Listings
 
 ### `GET /listings`: search approved listings
-Query params (all optional): `max_price`, `lat`, `lng`, `max_distance_km`, `start`, `end`, `sort` (`recommended` | `price` | `distance`).
+Query params (all optional): `query`, `vehicle_type`, `max_price`, `lat`, `lng`, `max_distance_km`, `start`, `end`, `sort` (`recommended` | `price` | `distance`).
 - `start` + `end`: only return listings free for that whole window.
-- `lat` + `lng`: adds `distance_km` to each result; needed for `distance` / `recommended` sorting.
+- `lat` + `lng`: adds Haversine straight-line `distance_km` to each search result; this is not routing distance or travel time.
+- If an exact search returns no rows and the request includes coordinates plus a valid `start`/`end` window, the backend automatically runs Parking Rescue on approved, active listings free for that window. It retains `vehicle_type`, relaxes the text and maximum-price filters, and limits candidates to 5 km unless `max_distance_km` is provided. It returns up to five results ranked by qualitative freshness/confirmation evidence, then price. Fallback rows include `search_fallback`, `recommendation_reasons`, `confidence`, `freshness`, and `confirmation`. Haversine distance is used only as a radius filter and is not returned as a route-distance claim. Without coordinates or a time window, no fallback is attempted.
 
 ```json
 { "data": [ {
@@ -61,6 +62,11 @@ Response `201`: the listing, with `"status": "pending"` (waits for admin review)
 
 ### `PATCH /listings/:id`: update your own listing
 Owner only (`403` otherwise). Allowed fields: `title`, `address`, `latitude`, `longitude`, `price_per_hour`, `is_active`. Sending `status` is rejected (`400`).
+
+### `GET /alternatives`: Parking Rescue
+Requires login and `lat`, `lng`, `start`, `end`; optional `exclude_listing_id`, `max_price`, and `radius_km` (default 5). Backend independently requires approved, active listings that are free for the full requested time window, excludes the caller's own listings, and returns at most five alternatives. Each item contains a `listing` with eligibility fields, `updated_at`, `last_confirmed_at`, `is_demo`, `confidence`, `freshness`, and `confirmation`, plus data-supported `reasons`. The Haversine `radius_km` filter is not returned as route distance. `is_demo: true` identifies demo data. Results may be empty; booking rechecks availability authoritatively and can still fail if a slot was taken after search.
+
+Freshness is based on `updated_at`; provider confirmation is based on `last_confirmed_at`. Both use a documented 24-hour evidence window. `confidence` is qualitative, not a probability.
 
 ## Bookings
 
