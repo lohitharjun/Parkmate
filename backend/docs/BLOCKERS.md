@@ -1,6 +1,15 @@
 # Status and open items
 
-## Verification status
+## Added 2026-11-01 (Tasks A–D) — what is and is not verified yet
+| Check | Status |
+|---|---|
+| `node --check` on every changed file, `npm run test:unit` (validators, image sanitiser, offline route tests with a fake DB/auth/Storage) | pass (see the count printed by the command) |
+| Migrations `007`, `008`, `009` and the new checks in `supabase/tests/db_tests.sql` | **written but NOT run**: needs your dev Supabase project (`npm run test:db`) |
+| New live tests in `tests/api.test.js` (location, availability-check, booking reasons, photo upload/review/EXIF) | **written but NOT run**: needs the dev project + a running server (`npm run test:api`) |
+| Photo upload against real Supabase Storage | **not run**: needs `SUPABASE_SERVICE_ROLE_KEY` and migration `008` (it creates the private `listing-photos` bucket) |
+| The evidence files in `docs/evidence/` | **older than migrations 007–009**; re-run `npm run test:db` / `test:api` to refresh them |
+
+## Verification status (before 2026-11-01)
 | Check | Status |
 |---|---|
 | Syntax check of every file (`node --check`) | pass |
@@ -19,6 +28,9 @@
 4. Deploy: follow `docs/DEPLOYMENT.md` (Render, CORS with the Vercel URL, schema + seed + admin on the live database, Supabase Auth URLs), then test `/health` on the public URL.
 
 ## Decisions to confirm with Nilesh
+- Task B endpoint names (table in `docs/api-contract.md`): `PUT /listings/:id/location`, `GET /listings/:id/availability-check`, photo routes under `/listings/:id/photos`, `GET /bookings/:id`, `reason` on error bodies. Photo upload sends the **raw file** as the body (not multipart).
+- Field names: the API keeps `owner_id` (= provider_id) and `status` (= listing_status); say if the frontend needs the other names as aliases.
+- Whether a listing should need at least one approved photo before it can be approved.
 - `/health` vs `/api/health` (both work; delete one line in `src/app.js` when decided).
 - All contract additions in `docs/api-contract.md`: cancel, alternatives (login required), listings/mine, availability (inline on create or separate `PUT`; omitted = open 24x7), confirm, admin queue, `/api/me`, `403` when booking your own listing, re-review behaviour on edits, `last_confirmed_at` / `is_demo` fields.
 - Booking max length 24 h, cancel not allowed after start, opening hours in Asia/Kolkata.
@@ -27,5 +39,5 @@
 ## Known limits
 - The backend DB role bypasses RLS; the real protection for backend traffic is the code checks (covered by `tests/api.test.js`). RLS protects direct Supabase access.
 - No admin UI: admins are set by SQL.
-- Not built: payments, rate limiting, photo upload (only `evidence_urls`), CI.
-- Free Render services sleep when idle (first request is slow).
+- Not built: payments (only the separate `payment_status` column exists), CI, a `draft` listing status, photo thumbnails/resizing, a malware scan of uploads (type, size and structure are validated and metadata is stripped).
+- Free Render services sleep when idle (first request is slow).

@@ -1,13 +1,16 @@
 const express = require('express');
 const pool = require('../db');
 const { requireAuth, optionalAuth } = require('../auth');
-const { bad, notFound, forbidden, wrap } = require('../errors');
-const { isUuid, parseIso, num, validateListingInput, validateAvailability } = require('../lib/validate');
+const { bad, notFound, wrap } = require('../errors');
+const { isUuid, parseIso, num, validateListingInput, validateAvailability, validateLocationInput, validateBookingWindow } = require('../lib/validate');
+const { loadListing, loadOwnedListing, isOwnerOrAdmin, canView } = require('../lib/listing-access');
+const { checkSlot } = require('../lib/booking-check');
+const { listListingPhotos, photosForListings } = require('../lib/photos');
 const { distanceSql, freeSql } = require('../lib/geo.sql');
 const { recommendParking } = require('../lib/parking-rescue');
 
 const router = express.Router();
-const PUBLIC_COLS = 'l.id, l.title, l.address, l.latitude, l.longitude, l.price_per_hour, l.updated_at, l.last_confirmed_at, l.is_demo';
+const PUBLIC_COLS = 'l.id, l.title, l.address, l.location_label, l.location_verified, l.latitude, l.longitude, l.price_per_hour, l.updated_at, l.last_confirmed_at, l.is_demo';
 
 // GET /api/listings  (public search: approved + active only)
 router.get('/', wrap(async (req, res) => {
@@ -112,30 +115,55 @@ router.get('/', wrap(async (req, res) => {
   res.json({ data: rows.map((r) => (hasGeo ? r : (({ distance_km, ...rest }) => rest)(r))) });
 }));
 
-// GET /api/listings/mine  (owner: all my listings, any status)
+// GET /api/listings/mine  (owner: all my listings, any status; each one carries ALL its photos incl. pending/rejected,
+// with review_status, so My spaces -> Parking photos can show the "In review" chip without one request per listing)
 router.get('/mine', requireAuth, wrap(async (req, res) => {
   const { rows } = await pool.query('SELECT * FROM listings WHERE owner_id = $1 ORDER BY created_at DESC', [req.user.id]);
-  res.json({ data: rows });
+  let photos = new Map();
+  try {
+    photos = await photosForListings(rows, { privileged: true });
+  } catch (e) {
+    console.error('Listing photos unavailable:', e.message); // the listings themselves must still load
+  }
+  res.json({ data: rows.map((l) => ({ ...l, photos: photos.get(l.id) || [] })) });
 }));
 
-// GET /api/listings/:id
+// GET /api/listings/:id   (includes the approved photos for consumers; owner/admin also get pending/rejected ones)
 router.get('/:id', optionalAuth, wrap(async (req, res) => {
-  if (!isUuid(req.params.id)) throw notFound('Listing not found');
-  const { rows } = await pool.query('SELECT * FROM listings WHERE id = $1', [req.params.id]);
-  const l = rows[0];
-  const canSee = l && (l.status === 'approved' || (req.user && (req.user.id === l.owner_id || req.user.isAdmin)));
-  if (!canSee) throw notFound('Listing not found');
+  const l = await loadListing(req.params.id);
+  if (!canView(l, req.user)) throw notFound('Listing not found');
   const av = await pool.query(
     'SELECT day_of_week, open_time, close_time FROM availability WHERE listing_id = $1 ORDER BY day_of_week, open_time', [l.id]);
-  const isOwnerOrAdmin = req.user && (req.user.id === l.owner_id || req.user.isAdmin);
+  const privileged = isOwnerOrAdmin(l, req.user);
+  let photos = [];
+  try {
+    photos = await listListingPhotos(l, { privileged });
+  } catch (e) {
+    console.error('Listing photos unavailable:', e.message); // the listing itself must still load
+  }
   const out = {
     id: l.id, title: l.title, description: l.description, rules: l.rules, address: l.address,
+    location_label: l.location_label, location_verified: l.location_verified, location_updated_at: l.location_updated_at,
     latitude: l.latitude, longitude: l.longitude, price_per_hour: l.price_per_hour,
     vehicle_type: l.vehicle_type, is_active: l.is_active, status: l.status,
-    updated_at: l.updated_at, last_confirmed_at: l.last_confirmed_at, is_demo: l.is_demo, availability: av.rows,
+    updated_at: l.updated_at, last_confirmed_at: l.last_confirmed_at, is_demo: l.is_demo, availability: av.rows, photos,
   };
-  if (isOwnerOrAdmin) { out.owner_id = l.owner_id; out.review_note = l.review_note; out.evidence_urls = l.evidence_urls || []; }
+  if (privileged) { out.owner_id = l.owner_id; out.review_note = l.review_note; out.evidence_urls = l.evidence_urls || []; }
   res.json({ data: out });
+}));
+
+// GET /api/listings/:id/availability-check?start=&end=   (read-only answer; POST /api/bookings re-checks it on the server)
+// 200 { data: { listing_id, start_time, end_time, available, reason, message, estimated_total_price } }
+// reason is null when available, otherwise LISTING_NOT_APPROVED | LISTING_PAUSED | OWN_LISTING | OUTSIDE_AVAILABLE_HOURS | SLOT_TAKEN
+router.get('/:id/availability-check', optionalAuth, wrap(async (req, res) => {
+  if (!isUuid(req.params.id)) throw notFound('Listing not found');
+  const { start, end } = validateBookingWindow(req.query.start, req.query.end, new Date(), { start: 'start', end: 'end' });
+  const r = await checkSlot(pool, { listingId: req.params.id, start, end, userId: req.user ? req.user.id : null });
+  if (!r.listing || !canView(r.listing, req.user)) throw notFound('Listing not found'); // pending/rejected stay invisible
+  res.json({ data: {
+    listing_id: r.listing.id, start_time: start.toISOString(), end_time: end.toISOString(),
+    available: r.available, reason: r.reason, message: r.message, estimated_total_price: r.estimatedTotalPrice,
+  } });
 }));
 
 // POST /api/listings  (optional inline "availability" windows; skipping it = open 24x7)
@@ -157,18 +185,7 @@ router.post('/', requireAuth, wrap(async (req, res) => {
   } catch (e) { await client.query('ROLLBACK'); throw e; } finally { client.release(); }
 }));
 
-async function loadOwned(req) {
-  if (!isUuid(req.params.id)) throw notFound('Listing not found');
-  const { rows } = await pool.query('SELECT * FROM listings WHERE id = $1', [req.params.id]);
-  const l = rows[0];
-  if (!l) throw notFound('Listing not found');
-  if (l.owner_id !== req.user.id) {
-    // someone else's approved listing is visible, so 403; someone else's pending/rejected is invisible, so 404
-    if (l.status === 'approved' || req.user.isAdmin) throw forbidden('Only the owner can change this listing');
-    throw notFound('Listing not found');
-  }
-  return l;
-}
+const loadOwned = loadOwnedListing;
 
 // PATCH /api/listings/:id  (owner only)
 router.patch('/:id', requireAuth, wrap(async (req, res) => {
@@ -196,6 +213,19 @@ router.put('/:id/availability', requireAuth, wrap(async (req, res) => {
     await client.query('COMMIT');
   } catch (e) { await client.query('ROLLBACK'); throw e; } finally { client.release(); }
   res.json({ data: { listing_id: l.id, windows } });
+}));
+
+// PUT /api/listings/:id/location  (owner only; saves the coordinates the provider picked on the map)
+// Required: latitude, longitude. Optional: address, location_label. The database stamps location_updated_at and clears
+// location_verified; moving an APPROVED listing also sends it back to pending (re-review), see the response status.
+router.put('/:id/location', requireAuth, wrap(async (req, res) => {
+  const l = await loadOwned(req);
+  const v = validateLocationInput(req.body);
+  const keys = Object.keys(v);
+  const { rows } = await pool.query(
+    `UPDATE listings SET ${keys.map((k, i) => `${k} = $${i + 1}`).join(', ')} WHERE id = $${keys.length + 1} RETURNING *`,
+    [...Object.values(v), l.id]);
+  res.json({ data: rows[0] });
 }));
 
 // POST /api/listings/:id/confirm  (owner says "this spot is still available"; sets last_confirmed_at = now)
