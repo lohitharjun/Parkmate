@@ -1,0 +1,14 @@
+{
+  "routes": [
+    { "path": "/", "title": "ParkMate — Home" },
+    { "path": "/auth/sign-in", "title": "ParkMate — Sign in" },
+    { "path": "/auth/sign-up", "title": "ParkMate — Create account" },
+    { "path": "/consumer/search", "title": "ParkMate — Find parking" },
+    { "path": "/consumer/listings/:listingId", "title": "ParkMate — Parking details" },
+    { "path": "/consumer/bookings", "title": "ParkMate — My bookings" },
+    { "path": "/consumer/rescue", "title": "ParkMate — Parking Rescue" },
+    { "path": "/provider/dashboard", "title": "ParkMate — Provider dashboard" },
+    { "path": "/provider/listings", "title": "ParkMate — My spaces" },
+    { "path": "/provider/reservations", "title": "ParkMate — Reservations" }
+  ]
+}

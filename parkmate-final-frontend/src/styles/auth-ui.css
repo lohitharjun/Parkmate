@@ -1,0 +1,187 @@
+/*
+ * Sign-in / sign-up / recovery pages — same look as the landing page.
+ * Inter type, burgundy accent (#dd0132) with no pink, frosted "window" card,
+ * and a stylised illustrative map on the right.
+ * Load after dashboard-ui.css. Colours come from the --pm-* tokens, so light and dark follow html[data-theme].
+ */
+
+/* ---- page + public header: landing fonts and background ---- */
+html:has(#root .auth-page), html:has(#root .auth-page) body, #root .app-shell:has(.auth-page) { background: var(--pm-bg); }
+/* Floating frosted top bar (same look as the landing page and signed-in header) */
+#root .site-header--public { position: sticky; top: 0; padding: 12px 0 0; background: transparent; backdrop-filter: none; font-family: var(--pm-font); }
+#root .site-header--public .site-header__inner {
+  position: relative; width: min(1200px, calc(100% - 2 * var(--pm-pad))); min-height: 0;
+  padding: 9px 10px 9px 16px; gap: 14px; border: 1px solid var(--pm-line); border-radius: 18px;
+  background: var(--pm-nav); -webkit-backdrop-filter: blur(24px) saturate(1.6); backdrop-filter: blur(24px) saturate(1.6);
+  box-shadow: var(--pm-shadow);
+}
+#root .site-header--public .site-header__rule { display: none; }
+#root .site-header--public .brand__word { color: var(--pm-text); font: 600 1.05rem var(--pm-font); letter-spacing: -.02em; }
+#root .site-header--public .brand__word small { display: none; }
+#root .site-header--public .theme-toggle {
+  min-height: 38px; padding: 8px 14px; border: 1px solid var(--pm-line); border-radius: 999px;
+  color: var(--pm-text); background: var(--pm-card); font: 600 .85rem var(--pm-font); box-shadow: none;
+}
+#root .site-header--public .theme-toggle svg { color: var(--pm-hl); }
+#root .site-header--public .theme-toggle:hover { border-color: var(--pm-accent); }
+
+#root .auth-page {
+  max-width: 1200px; min-height: calc(100vh - 120px); padding: 24px 0 56px;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: var(--pm-gap); align-items: stretch;
+  font-family: var(--pm-font); color: var(--pm-text);
+}
+#root .auth-page :is(input, button, select, textarea) { font-family: inherit; }
+
+/* ---- card ---- */
+#root .auth-card {
+  padding: clamp(24px, 3.2vw, 44px); border: 1px solid var(--pm-line); border-radius: 28px;
+  color: var(--pm-text); background: var(--pm-card); box-shadow: var(--pm-shadow);
+  -webkit-backdrop-filter: blur(20px); backdrop-filter: blur(20px);
+}
+#root .auth-card__eyebrow { gap: 10px; color: var(--pm-hl); font: 600 .78rem var(--pm-font); letter-spacing: .12em; }
+#root .auth-card__icon { width: 34px; height: 34px; border-radius: 11px; color: var(--pm-hl); background: var(--pm-tint); }
+#root .auth-card h1 { margin: 22px 0 12px; color: var(--pm-text); font: 700 clamp(2rem, 3.6vw, 2.9rem) / 1.06 var(--pm-font); letter-spacing: -.04em; }
+#root .auth-card h1 em { color: var(--pm-hl); font: inherit; font-style: normal; letter-spacing: inherit; }
+#root .auth-card__lead { margin: 0 0 18px; color: var(--pm-muted); font: 400 1rem/1.6 var(--pm-font); }
+
+/* ---- role switch ---- */
+#root .role-choice legend { margin-bottom: 8px; color: var(--pm-muted); font: 600 .85rem var(--pm-font); }
+#root .auth-role-switch button {
+  min-height: 62px; padding: 12px 14px; border: 1px solid var(--pm-line); border-radius: 16px;
+  color: var(--pm-text); background: var(--pm-field); transition: border-color .25s, background .25s, box-shadow .25s;
+}
+#root .auth-role-switch button strong { font: 600 .95rem var(--pm-font); }
+#root .auth-role-switch button small { color: var(--pm-muted); font: 400 .78rem var(--pm-font); }
+#root .auth-role-switch button:hover { border-color: var(--pm-tint-2); background: var(--pm-tint); }
+#root .auth-role-switch button.is-selected { border-color: var(--pm-accent); background: rgba(221, 1, 50, .12); box-shadow: 0 0 0 3px rgba(221, 1, 50, .18); }
+
+/* ---- fields ---- */
+#root .auth-card .field { gap: 8px; color: var(--pm-muted); font: 600 .875rem var(--pm-font); }
+#root .auth-card .field :is(input, select, textarea) {
+  min-height: 50px; padding: 12px 16px; border: 1px solid var(--pm-line); border-radius: 14px;
+  color: var(--pm-text); background-color: var(--pm-field); font: 500 1rem var(--pm-font);
+}
+#root .auth-card .field input::placeholder { color: var(--pm-muted); opacity: .65; }
+#root .auth-card .field :is(input, select, textarea):hover { border-color: var(--pm-tint-2); }
+#root .auth-card .field :is(input, select, textarea):focus { border-color: var(--pm-accent); box-shadow: 0 0 0 3px rgba(221, 1, 50, .25); outline: 0; }
+#root .auth-card .password-field button { color: var(--pm-muted); }
+#root .auth-card .password-field button:hover { color: var(--pm-text); background: var(--pm-tint); }
+#root .auth-consent label, #root .auth-card .check-line { color: var(--pm-muted); font: 500 .875rem/1.5 var(--pm-font); }
+#root .auth-card input[type='checkbox'] { accent-color: var(--pm-accent); }
+
+/* ---- buttons and links ---- */
+#root .auth-card .button--primary {
+  min-height: 52px; border: 0; border-radius: 999px; color: #fff; background: var(--pm-accent);
+  font: 600 1rem var(--pm-font); letter-spacing: -.005em; box-shadow: 0 10px 28px rgba(221, 1, 50, .28);
+}
+#root .auth-card .button--primary:hover:not(:disabled) { color: #fff; background: var(--pm-accent-2); box-shadow: 0 14px 34px rgba(221, 1, 50, .36); }
+#root .auth-card .button--secondary, #root .auth-card .button--outline {
+  min-height: 48px; border: 1px solid var(--pm-line); border-radius: 999px; color: var(--pm-text); background: var(--pm-field); font: 600 .95rem var(--pm-font);
+}
+#root .auth-card .button--secondary:hover:not(:disabled), #root .auth-card .button--outline:hover:not(:disabled) { border-color: var(--pm-accent); background: var(--pm-tint); }
+#root .auth-form__switch { color: var(--pm-muted); font: 400 .9rem var(--pm-font); }
+#root .auth-card a:not(.button) { color: var(--pm-hl); font-weight: 600; text-decoration: none; }
+#root .auth-card a:not(.button):hover { color: var(--pm-text); text-decoration: underline; text-underline-offset: 3px; }
+#root .auth-card__privacy { border-color: var(--pm-line); color: var(--pm-muted); font: 400 .8rem/1.55 var(--pm-font); }
+#root .auth-card__privacy svg { color: var(--pm-hl); }
+#root .auth-page :is(a, button, input, select, textarea):focus-visible { outline: 2px solid #f2073a; outline-offset: 3px; }
+
+/* ---- notices (no pink) ---- */
+#root .auth-card .inline-notice { border: 1px solid var(--pm-line); border-radius: 14px; color: var(--pm-text); background: var(--pm-tint); font: 400 .875rem/1.55 var(--pm-font); }
+#root .auth-card .inline-notice--success { color: var(--pm-ok); border-color: transparent; background: var(--pm-ok-bg); }
+#root .auth-card .inline-notice--error { color: #ff8a80; border-color: transparent; background: rgba(255, 90, 70, .13); }
+html[data-theme='light'] #root .auth-card .inline-notice--error { color: #a23a3a; background: var(--pm-bad-bg); }
+#root .auth-card .field-error { color: #ff8a80; }
+html[data-theme='light'] #root .auth-card .field-error { color: #a23a3a; }
+
+/* =====================================================================
+   Illustrative map panel
+   ===================================================================== */
+#root .auth-map {
+  --am-land: #e6e5da; --am-block: #dad8ca; --am-park: #c9d8c0; --am-water: #c8d9d6;
+  --am-minor: rgba(255, 255, 255, .75); --am-road: #fbfaf4; --am-road-edge: #cfcdbf;
+  --am-label: rgba(23, 38, 31, .42); --am-chip: #fffefa; --am-chip-line: #cfcdbf; --am-chip-text: #17261f;
+  --am-card: rgba(250, 249, 243, .84); --am-card-line: rgba(20, 45, 35, .12);
+  position: relative; isolation: isolate; display: block; min-height: 620px; overflow: hidden;
+  border: 1px solid var(--pm-line); border-radius: 28px; color: var(--pm-text); background: var(--am-land);
+  box-shadow: var(--pm-shadow-lg); font-family: var(--pm-font);
+}
+html[data-theme='dark'] #root .auth-map {
+  --am-land: #09090b; --am-block: #111114; --am-park: #0f1411; --am-water: #0c1216;
+  --am-minor: rgba(255, 255, 255, .05); --am-road: #1b1b20; --am-road-edge: #26262c;
+  --am-label: rgba(255, 255, 255, .34); --am-chip: #151518; --am-chip-line: #2c2c32; --am-chip-text: #f5f5f7;
+  --am-card: rgba(20, 20, 23, .78); --am-card-line: rgba(255, 255, 255, .12);
+}
+.auth-map__svg { position: absolute; inset: 0; z-index: -1; width: 100%; height: 100%; display: block; }
+.auth-map__land { fill: var(--am-land); }
+.auth-map__blocks rect { fill: var(--am-block); }
+.auth-map__park { fill: var(--am-park); }
+.auth-map__water { fill: none; stroke: var(--am-water); stroke-width: 40; stroke-linecap: round; }
+.auth-map__minor path { fill: none; stroke: var(--am-minor); stroke-width: 3; }
+.auth-map__road { fill: none; stroke: var(--am-road); stroke-width: 15; stroke-linecap: round; paint-order: stroke; }
+.auth-map__road--wide { stroke-width: 20; }
+.auth-map__roads { filter: drop-shadow(0 0 0.6px var(--am-road-edge)); }
+.auth-map__route-glow { fill: none; stroke: #dd0132; stroke-width: 11; stroke-linecap: round; opacity: .32; }
+.auth-map__route { fill: none; stroke: #dd0132; stroke-width: 4; stroke-linecap: round; stroke-dasharray: 2 11; animation: auth-map-flow 2.4s linear infinite; }
+.auth-map__labels text { fill: var(--am-label); font: 600 11px var(--pm-font); letter-spacing: .22em; }
+.auth-map__chip { fill: var(--am-chip); stroke: var(--am-chip-line); stroke-width: 1; }
+.auth-map__chip-tail { fill: var(--am-chip); stroke: none; }
+.auth-map__chip-text { fill: var(--am-chip-text); font: 700 12px var(--pm-font); }
+.auth-map__dot { fill: #dd0132; stroke: var(--am-chip); stroke-width: 2; }
+.auth-map__start-halo { fill: rgba(221, 1, 50, .2); }
+.auth-map__start { fill: #fff; stroke: #dd0132; stroke-width: 3; }
+.auth-map__pulse { fill: rgba(221, 1, 50, .35); transform-box: fill-box; transform-origin: center; animation: auth-map-pulse 2.2s ease-out infinite; }
+.auth-map__best-chip { fill: #dd0132; }
+.auth-map__best-tail { fill: #dd0132; }
+.auth-map__best-text { fill: #fff; font: 700 13px var(--pm-font); }
+.auth-map__best-dot { fill: #fff; stroke: #dd0132; stroke-width: 3; }
+@keyframes auth-map-flow { to { stroke-dashoffset: -26; } }
+@keyframes auth-map-pulse { from { transform: scale(.6); opacity: .9; } to { transform: scale(3.2); opacity: 0; } }
+
+.auth-map__badge {
+  position: absolute; top: 20px; left: 20px; display: inline-flex; align-items: center; gap: 7px; padding: 8px 14px;
+  border: 1px solid var(--am-card-line); border-radius: 999px; color: var(--pm-text); background: var(--am-card);
+  -webkit-backdrop-filter: blur(16px) saturate(1.5); backdrop-filter: blur(16px) saturate(1.5); font: 600 .78rem var(--pm-font);
+}
+.auth-map__badge svg { color: #dd0132; }
+.auth-map__card {
+  position: absolute; right: 20px; bottom: 20px; left: 20px; display: grid; gap: 12px; padding: 20px 22px;
+  border: 1px solid var(--am-card-line); border-radius: 22px; background: var(--am-card);
+  -webkit-backdrop-filter: blur(22px) saturate(1.6); backdrop-filter: blur(22px) saturate(1.6);
+}
+.auth-map__quote { margin: 0; color: var(--pm-text); font: 700 clamp(1.4rem, 2.4vw, 1.9rem) / 1.12 var(--pm-font); letter-spacing: -.035em; }
+.auth-map__quote em { color: #dd0132; font-style: normal; }
+html[data-theme='dark'] .auth-map__quote em { color: #f2073a; }
+.auth-map__chips { display: flex; flex-wrap: wrap; gap: 8px; margin: 0; padding: 0; list-style: none; }
+.auth-map__chips li { display: inline-flex; align-items: center; gap: 6px; padding: 6px 12px; border: 1px solid var(--am-card-line); border-radius: 999px; color: var(--pm-text); background: var(--pm-tint); font: 600 .78rem var(--pm-font); }
+.auth-map__chips svg { color: #dd0132; }
+.auth-map__card small { color: var(--pm-muted); font: 400 .75rem var(--pm-font); }
+
+@media (max-width: 900px) {
+  #root .auth-page { grid-template-columns: minmax(0, 1fr); min-height: 0; padding-top: 12px; }
+  #root .auth-map { min-height: 460px; }
+}
+@media (max-width: 520px) {
+  #root .auth-card { border-radius: 22px; padding: 22px 18px; }
+  #root .auth-map { min-height: 420px; border-radius: 22px; }
+  .auth-map__card { right: 12px; bottom: 12px; left: 12px; padding: 16px; }
+  .auth-map__badge { top: 12px; left: 12px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .auth-map__route, .auth-map__pulse { animation: none; }
+}
+
+
+/* ---- light mode: every button/accent is evergreen, never burgundy ---- */
+html:not([data-theme='dark']) #root .auth-role-switch button.is-selected { background: rgba(15, 74, 57, .10); box-shadow: 0 0 0 3px rgba(15, 74, 57, .16); }
+html:not([data-theme='dark']) #root .auth-card .field :is(input, select, textarea):focus { box-shadow: 0 0 0 3px rgba(15, 74, 57, .22); }
+html:not([data-theme='dark']) #root .auth-card .button--primary { box-shadow: 0 10px 28px rgba(15, 74, 57, .28); }
+html:not([data-theme='dark']) #root .auth-card .button--primary:hover:not(:disabled) { box-shadow: 0 14px 34px rgba(15, 74, 57, .36); }
+html:not([data-theme='dark']) #root .auth-page :is(a, button, input, select, textarea):focus-visible { outline-color: #176149; }
+html:not([data-theme='dark']) .auth-map :is(.auth-map__route-glow, .auth-map__route) { stroke: #0f4a39; }
+html:not([data-theme='dark']) .auth-map :is(.auth-map__dot, .auth-map__best-chip, .auth-map__best-tail) { fill: #0f4a39; }
+html:not([data-theme='dark']) .auth-map__start-halo { fill: rgba(15, 74, 57, .2); }
+html:not([data-theme='dark']) .auth-map__start, html:not([data-theme='dark']) .auth-map__best-dot { stroke: #0f4a39; }
+html:not([data-theme='dark']) .auth-map__pulse { fill: rgba(15, 74, 57, .35); }
+html:not([data-theme='dark']) .auth-map__badge svg, html:not([data-theme='dark']) .auth-map__chips svg { color: #0f4a39; }
+html:not([data-theme='dark']) .auth-map__quote em { color: #0f4a39; }
