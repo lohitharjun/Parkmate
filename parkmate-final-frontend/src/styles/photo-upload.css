@@ -1,0 +1,34 @@
+/* Parking photos: grey icon tile, camera dialog, saved-photo review details. */
+#root .photo-picker .photo-picker__icon { color: #5d636b; background: #e6e8eb; }
+html[data-theme="dark"] #root .photo-picker .photo-picker__icon { color: #b9bdc4; background: #2a2d32; }
+
+.camera-modal { position: fixed; inset: 0; z-index: 1000; display: grid; place-items: center; padding: 16px; background: rgba(0, 0, 0, .72); }
+.camera-modal__panel { display: grid; gap: 12px; width: min(720px, 100%); max-height: 100%; padding: 14px; border-radius: 18px; color: #f2f3f5; background: #15171a; border: 1px solid #34373c; box-shadow: 0 24px 60px rgba(0, 0, 0, .5); }
+.camera-modal__bar { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.camera-modal__bar strong { font-size: 1rem; }
+.camera-modal__close { display: grid; place-items: center; width: 34px; height: 34px; border: 0; border-radius: 50%; color: #f2f3f5; background: #2a2d32; cursor: pointer; }
+.camera-modal__view { position: relative; display: grid; place-items: center; min-height: 220px; overflow: hidden; border-radius: 12px; background: #000; }
+.camera-modal__view video { display: block; width: 100%; max-height: 60vh; object-fit: contain; }
+.camera-modal__status { position: absolute; inset: 0; display: grid; place-items: center; margin: 0; padding: 20px; text-align: center; font-size: .9rem; line-height: 1.5; color: #d6d8dc; }
+.camera-modal__status--error { color: #ffc2c8; background: rgba(0, 0, 0, .78); }
+.camera-modal__actions { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 10px; }
+.camera-modal__actions .photo-picker__btn { color: #f2f3f5; border-color: #3a3d42; background: #1f2226; }
+.camera-modal__shutter { display: inline-flex; gap: 8px; align-items: center; padding: 11px 20px; border: 0; border-radius: 14px; color: #fff; background: #4b5058; font: 700 .9375rem inherit; cursor: pointer; }
+.camera-modal__shutter:hover:not(:disabled) { background: #62676f; }
+.camera-modal__shutter:disabled { opacity: .5; cursor: not-allowed; }
+.camera-modal__shutter:focus-visible, .camera-modal__close:focus-visible { outline: 2px solid #fff; outline-offset: 2px; }
+
+.photo-saved-list { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 12px; }
+.photo-saved { display: grid; gap: 6px; align-content: start; }
+.photo-saved__frame { position: relative; aspect-ratio: 4 / 3; overflow: hidden; border-radius: 12px; border: 1px solid var(--pm-line, #dfe3dc); background: var(--pm-tint, #eef0ec); }
+.photo-saved__frame img { display: block; width: 100%; height: 100%; object-fit: cover; }
+.photo-saved__delete { position: absolute; top: 6px; right: 6px; display: grid; place-items: center; width: 28px; height: 28px; border: 0; border-radius: 50%; color: #fff; background: rgba(0, 0, 0, .62); cursor: pointer; }
+.photo-saved__delete:hover:not(:disabled) { background: #b3243f; }
+.photo-saved__delete:disabled, .photo-saved__set:disabled { opacity: .5; cursor: not-allowed; }
+.photo-saved__meta { display: grid; gap: 4px; }
+.photo-saved__main { display: inline-flex; align-items: center; gap: 5px; width: max-content; padding: 3px 9px; border-radius: 999px; font-size: .75rem; font-weight: 700; color: #3f444b; background: #e6e8eb; }
+.photo-saved__set { width: max-content; padding: 5px 11px; border: 1px solid var(--pm-line, #d3d7d0); border-radius: 999px; color: inherit; background: transparent; font: 600 .8125rem inherit; cursor: pointer; }
+.photo-saved__set:hover:not(:disabled) { background: var(--pm-tint, #eef0ec); }
+.photo-saved__note { margin: 0; font-size: .8125rem; line-height: 1.4; color: #b3243f; }
+html[data-theme="dark"] .photo-saved__main { color: #e0e2e6; background: #2a2d32; }
+html[data-theme="dark"] .photo-saved__note { color: #ff9aa5; }
