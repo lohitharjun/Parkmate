@@ -74,3 +74,41 @@ test('inline availability: allowed on create, validated, not allowed on update',
   assert.strictEqual(code(() => v.validateListingInput({ ...ok, availability: [{ day_of_week: 9, open_time: '06:00', close_time: '22:00' }] }, { partial: false })), 'VALIDATION_ERROR');
   assert.strictEqual(code(() => v.validateListingInput({ availability: w }, { partial: true })), 'VALIDATION_ERROR');
 });
+
+// ---- location + photo capture validators (added with migrations 007-009) ----
+const { validateLocationInput, validateCaptureMeta, validateListingInput: vli, validateBookingWindow: vbw } = require('../src/lib/validate');
+
+test('validateLocationInput: needs both coordinates, ranges enforced, 0,0 and unknown fields rejected', () => {
+  assert.deepStrictEqual(validateLocationInput({ latitude: 13.1, longitude: 80.2, location_label: ' Gate 2 ', address: 'A' }),
+    { latitude: 13.1, longitude: 80.2, address: 'A', location_label: 'Gate 2' });
+  assert.strictEqual(validateLocationInput({ latitude: 13.1, longitude: 80.2, location_label: '' }).location_label, null);
+  for (const b of [null, [], {}, { latitude: 1 }, { latitude: 91, longitude: 0 }, { latitude: 0, longitude: -181 }, { latitude: '1', longitude: 2 },
+    { latitude: 0, longitude: 0 }, { latitude: 1, longitude: 2, status: 'approved' }, { latitude: 1, longitude: 2, location_verified: true }]) {
+    assert.throws(() => validateLocationInput(b), (e) => e.status === 400, JSON.stringify(b));
+  }
+});
+
+test('validateCaptureMeta: optional, paired, in range, not in the future', () => {
+  const now = new Date('2026-11-01T10:00:00Z');
+  assert.deepStrictEqual(validateCaptureMeta({}, now), { capture_latitude: null, capture_longitude: null, captured_at: null });
+  const m = validateCaptureMeta({ capture_latitude: '13.5', capture_longitude: '80.1', captured_at: '2026-11-01T09:00:00Z' }, now);
+  assert.deepStrictEqual([m.capture_latitude, m.capture_longitude, m.captured_at.toISOString()], [13.5, 80.1, '2026-11-01T09:00:00.000Z']);
+  for (const q of [{ capture_latitude: '1' }, { capture_longitude: '1' }, { capture_latitude: '95', capture_longitude: '1' }, { capture_latitude: 'x', capture_longitude: '1' },
+    { capture_latitude: '0', capture_longitude: '0' }, { captured_at: '2026-11-01T11:00:00Z' }, { captured_at: 'nope' }, { capture_latitude: ['1', '2'], capture_longitude: '1' }]) {
+    assert.throws(() => validateCaptureMeta(q, now), (e) => e.status === 400, JSON.stringify(q));
+  }
+});
+
+test('listing input: location_label optional (max 120); 0,0 rejected', () => {
+  const base = { title: 't', address: 'a', latitude: 13, longitude: 80, price_per_hour: 10 };
+  assert.strictEqual(vli({ ...base, location_label: 'Near gate' }, { partial: false }).location_label, 'Near gate');
+  assert.throws(() => vli({ ...base, location_label: 'x'.repeat(121) }, { partial: false }), (e) => e.status === 400);
+  assert.throws(() => vli({ ...base, latitude: 0, longitude: 0 }, { partial: false }), (e) => e.status === 400);
+  assert.throws(() => vli({ ...base, location_verified: true }, { partial: false }), (e) => e.status === 400);
+});
+
+test('booking window: custom field names appear in the error message', () => {
+  const now = new Date('2026-11-01T10:00:00Z');
+  assert.throws(() => vbw('2026-11-02T10:00:00Z', '2026-11-02T09:00:00Z', now, { start: 'start', end: 'end' }), /end must be after start/);
+  assert.throws(() => vbw('2026-11-02T10:00:00Z', '2026-11-02T09:00:00Z', now), /end_time must be after start_time/);
+});

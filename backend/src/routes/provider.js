@@ -9,7 +9,7 @@ const router = express.Router();
 // GET /api/provider/bookings?listing_id=   (only bookings on listings I own)
 router.get('/bookings', requireAuth, wrap(async (req, res) => {
   const params = [req.user.id];
-  let sql = `SELECT b.id, b.listing_id, b.start_time, b.end_time, b.status, b.total_price,
+  let sql = `SELECT b.id, b.listing_id, b.start_time, b.end_time, b.status, b.payment_status, b.total_price,
                     json_build_object('display_name', COALESCE(p.full_name, 'ParkMate user')) AS consumer
              FROM bookings b
              JOIN listings l ON l.id = b.listing_id

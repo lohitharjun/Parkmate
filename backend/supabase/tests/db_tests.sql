@@ -1,6 +1,6 @@
 -- ParkMate DB tests: booking constraint, triggers, price rules, availability, RLS.
 -- Run on the DEV project only: Supabase SQL editor (paste whole file) or `npm run test:db`.
--- Needs migrations 001-006 applied. Creates temp users (@dbtest.invalid) and removes ONLY those at the end.
+-- Needs migrations 001-009 applied. Creates temp users (@dbtest.invalid) and removes ONLY those at the end.
 -- (The API test users, e.g. owner@parkmate.test, are never touched.)
 -- Final SELECT is the results table. Concurrency (parallel requests) is tested in tests/api.test.js.
 
@@ -67,6 +67,7 @@ DECLARE
   base timestamptz := (date_trunc('day', timezone('Asia/Kolkata', now())) + interval '400 days') AT TIME ZONE 'Asia/Kolkata'; -- midnight IST, far future
   r text; n int; price numeric; st text; ttl text;
   listing_updated_before timestamptz; listing_updated_after timestamptz;
+  l_loc uuid; ph1 uuid; ph2 uuid; vb boolean; ts1 timestamptz; ts2 timestamptz; pst text; k int; b3 uuid;
   ins text := 'INSERT INTO bookings (listing_id,user_id,start_time,end_time,total_price) VALUES (%L,%L,%L,%L,0)';
 BEGIN
   -- ---------- fixtures (as postgres) ----------
@@ -268,7 +269,93 @@ BEGIN
 
   r := pg_temp.as_user('authenticated', u_owner, format('UPDATE listings SET last_confirmed_at = now() WHERE id = %L', l_ok));
   PERFORM pg_temp.rec('rules: a client cannot fake last_confirmed_at', r LIKE 'ERR:42501:FORBIDDEN%', r);
+
+  -- ================= LISTING LOCATION FIELDS (migration 007) =================
+  INSERT INTO listings (owner_id,title,address,latitude,longitude,price_per_hour) VALUES (u_owner,'T loc','a',13.0,80.2,40) RETURNING id INTO l_loc;
+  SELECT location_verified, location_updated_at INTO vb, ts1 FROM listings WHERE id = l_loc;
+  PERFORM pg_temp.rec('location: new listing starts unverified and has a location timestamp', vb = false AND ts1 IS NOT NULL, 'verified=' || vb);
+  UPDATE listings SET status = 'approved' WHERE id = l_loc;
+  SELECT location_verified INTO vb FROM listings WHERE id = l_loc;
+  PERFORM pg_temp.rec('location: approving a listing marks its location verified', vb, 'verified=' || vb);
+  UPDATE listings SET location_label = 'Next to gate 2' WHERE id = l_loc;
+  SELECT location_verified, status::text INTO vb, st FROM listings WHERE id = l_loc;
+  PERFORM pg_temp.rec('location: changing only the display label keeps it verified and approved', vb AND st = 'approved', 'verified=' || vb || ' status=' || st);
+  UPDATE listings SET location_updated_at = now() - interval '1 day' WHERE id = l_loc;
+  SELECT location_updated_at INTO ts1 FROM listings WHERE id = l_loc;
+  UPDATE listings SET longitude = longitude + 0.001 WHERE id = l_loc;
+  SELECT location_verified, location_updated_at, status::text INTO vb, ts2, st FROM listings WHERE id = l_loc;
+  PERFORM pg_temp.rec('location: moving an approved listing clears verification, re-queues it and stamps location_updated_at', vb = false AND st = 'pending' AND ts2 > ts1, 'verified=' || vb || ' status=' || st);
+  UPDATE listings SET status = 'approved' WHERE id = l_loc;
+  SELECT location_verified INTO vb FROM listings WHERE id = l_loc;
+  PERFORM pg_temp.rec('location: re-approval verifies the new location', vb, 'verified=' || vb);
+  r := pg_temp.as_user('authenticated', u_owner, format('UPDATE listings SET location_verified = true WHERE id = %L', l_off));
+  PERFORM pg_temp.rec('location: a client cannot mark its own location verified', r LIKE 'ERR:42501:FORBIDDEN%', r);
+  r := pg_temp.as_user('authenticated', u_owner, format('UPDATE listings SET location_updated_at = now() WHERE id = %L', l_off));
+  PERFORM pg_temp.rec('location: a client cannot set location_updated_at', r LIKE 'ERR:42501:FORBIDDEN%', r);
+  r := pg_temp.as_user('authenticated', u_owner, format('INSERT INTO listings (owner_id,title,address,latitude,longitude,price_per_hour,location_verified) VALUES (%L,''fake verified'',''a'',2,2,10,true)', u_owner));
+  SELECT location_verified INTO vb FROM listings WHERE owner_id = u_owner AND title = 'fake verified';
+  PERFORM pg_temp.rec('location: a client cannot create a pre-verified listing', r = 'OK:1' AND vb = false, r || ' verified=' || vb);
+  r := pg_temp.as_user('postgres', NULL, format('UPDATE listings SET latitude = 95 WHERE id = %L', l_off));
+  PERFORM pg_temp.rec('location: latitude outside -90..90 rejected (23514)', r LIKE 'ERR:23514:%', r);
+  r := pg_temp.as_user('postgres', NULL, format('UPDATE listings SET longitude = -181 WHERE id = %L', l_off));
+  PERFORM pg_temp.rec('location: longitude outside -180..180 rejected (23514)', r LIKE 'ERR:23514:%', r);
+  r := pg_temp.as_user('postgres', NULL, format('UPDATE listings SET latitude = 0, longitude = 0 WHERE id = %L', l_off));
+  PERFORM pg_temp.rec('location: 0,0 (null island) rejected for new values (23514)', r LIKE 'ERR:23514:%', r);
+  r := pg_temp.as_user('postgres', NULL, format('UPDATE listings SET location_label = '''' WHERE id = %L', l_off));
+  PERFORM pg_temp.rec('location: empty location_label rejected (23514)', r LIKE 'ERR:23514:%', r);
+
+  -- ================= LISTING PHOTOS (migration 008) =================
+  INSERT INTO listing_photos (listing_id, uploaded_by, storage_path, content_type, size_bytes, capture_latitude, capture_longitude, captured_at, review_status, is_primary)
+  VALUES (l_ok, u_owner, l_ok || '/p1.jpg', 'image/jpeg', 1000, 13.0, 80.2, now(), 'approved', false) RETURNING id INTO ph1;
+  SELECT review_status::text, is_primary INTO st, vb FROM listing_photos WHERE id = ph1;
+  PERFORM pg_temp.rec('photos: insert is forced to pending and the first photo becomes the main one', st = 'pending' AND vb, st || ' primary=' || vb);
+  INSERT INTO listing_photos (listing_id, uploaded_by, storage_path, content_type, size_bytes) VALUES (l_ok, u_owner, l_ok || '/p2.png', 'image/png', 2000) RETURNING id INTO ph2;
+  SELECT is_primary INTO vb FROM listing_photos WHERE id = ph2;
+  PERFORM pg_temp.rec('photos: a second photo is not the main one', vb = false, 'primary=' || vb);
+  r := pg_temp.as_user('postgres', NULL, format('INSERT INTO listing_photos (listing_id, uploaded_by, storage_path, content_type, size_bytes) VALUES (%L,%L,%L,''image/jpeg'',10)', l_ok, u_other, l_ok || '/x.jpg'));
+  PERFORM pg_temp.rec('photos: only the listing owner can add photos (PH001)', r LIKE 'ERR:PH001:%', r);
+  r := pg_temp.as_user('postgres', NULL, format('UPDATE listing_photos SET is_primary = true WHERE id = %L', ph2));
+  PERFORM pg_temp.rec('photos: two main photos on one listing rejected (23505)', r LIKE 'ERR:23505:%', r);
+  r := pg_temp.as_user('postgres', NULL, format('UPDATE listing_photos SET storage_path = ''other/path.jpg'' WHERE id = %L', ph1));
+  PERFORM pg_temp.rec('photos: storage path / capture data cannot be edited (P0003)', r LIKE 'ERR:P0003:%', r);
+  r := pg_temp.as_user('postgres', NULL, format('INSERT INTO listing_photos (listing_id, uploaded_by, storage_path, content_type, size_bytes, capture_latitude) VALUES (%L,%L,%L,''image/jpeg'',10,13.0)', l_hours, u_owner, l_hours || '/c.jpg'));
+  PERFORM pg_temp.rec('photos: capture latitude without longitude rejected (23514)', r LIKE 'ERR:23514:%', r);
+  r := pg_temp.as_user('postgres', NULL, format('INSERT INTO listing_photos (listing_id, uploaded_by, storage_path, content_type, size_bytes) VALUES (%L,%L,%L,''image/gif'',10)', l_hours, u_owner, l_hours || '/g.gif'));
+  PERFORM pg_temp.rec('photos: only jpeg/png content types allowed (23514)', r LIKE 'ERR:23514:%', r);
+  UPDATE listing_photos SET review_status = 'rejected' WHERE id = ph1;
+  SELECT is_primary INTO vb FROM listing_photos WHERE id = ph1;
+  PERFORM pg_temp.rec('photos: rejecting the main photo clears is_primary', vb = false, 'primary=' || vb);
+  FOR k IN 1..8 LOOP
+    INSERT INTO listing_photos (listing_id, uploaded_by, storage_path, content_type, size_bytes) VALUES (l_ok, u_owner, l_ok || '/l' || k || '.jpg', 'image/jpeg', 10);
+  END LOOP;
+  r := pg_temp.as_user('postgres', NULL, format('INSERT INTO listing_photos (listing_id, uploaded_by, storage_path, content_type, size_bytes) VALUES (%L,%L,%L,''image/jpeg'',10)', l_ok, u_owner, l_ok || '/l9.jpg'));
+  PERFORM pg_temp.rec('photos: at most 10 photos per listing (PH002)', r LIKE 'ERR:PH002:%', r);
+  PERFORM pg_temp.rec('photos: RLS is enabled on listing_photos',
+    EXISTS (SELECT 1 FROM pg_class WHERE relname = 'listing_photos' AND relnamespace = 'public'::regnamespace AND relrowsecurity), '');
+  n := pg_temp.seen('authenticated', u_owner, 'SELECT 1 FROM listing_photos');
+  PERFORM pg_temp.rec('photos: even the owner cannot read listing_photos with a client key', n <= 0, 'rows=' || n);
+  n := pg_temp.seen('anon', NULL, 'SELECT 1 FROM listing_photos');
+  PERFORM pg_temp.rec('photos: anon cannot read listing_photos', n <= 0, 'rows=' || n);
+  r := pg_temp.as_user('authenticated', u_owner, format('INSERT INTO listing_photos (listing_id, uploaded_by, storage_path, content_type, size_bytes) VALUES (%L,%L,%L,''image/jpeg'',10)', l_hours, u_owner, l_hours || '/client.jpg'));
+  PERFORM pg_temp.rec('photos: clients cannot insert directly', r LIKE 'ERR:42501:%', r);
+  IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_schema = 'storage' AND table_name = 'buckets') THEN
+    PERFORM pg_temp.rec('storage: listing-photos bucket exists and is private', EXISTS (SELECT 1 FROM storage.buckets WHERE id = 'listing-photos' AND public = false), '');
+  END IF;
+
+  -- ================= BOOKING vs PAYMENT STATE (migration 009) =================
+  r := pg_temp.as_user('postgres', NULL, format('INSERT INTO bookings (listing_id,user_id,start_time,end_time,total_price,payment_status) VALUES (%L,%L,%L,%L,0,''paid'')', l_re1, u_cons, base + interval '3 hours', base + interval '4 hours'));
+  SELECT id, payment_status::text, status::text INTO b3, pst, st FROM bookings WHERE listing_id = l_re1 AND start_time = base + interval '3 hours';
+  PERFORM pg_temp.rec('payment: a new booking is always unpaid (a client-sent paid is ignored)', r = 'OK:1' AND pst = 'unpaid' AND st = 'confirmed', r || ' ' || pst || '/' || st);
+  UPDATE bookings SET payment_status = 'paid' WHERE id = b3;
+  SELECT payment_status::text, status::text INTO pst, st FROM bookings WHERE id = b3;
+  PERFORM pg_temp.rec('payment: marking a booking paid does not change its booking status', pst = 'paid' AND st = 'confirmed', pst || '/' || st);
+  UPDATE bookings SET status = 'cancelled' WHERE id = b3;
+  SELECT payment_status::text, status::text INTO pst, st FROM bookings WHERE id = b3;
+  PERFORM pg_temp.rec('payment: cancelling a booking does not rewrite its payment state', pst = 'paid' AND st = 'cancelled', pst || '/' || st);
+  r := pg_temp.as_user('authenticated', u_cons, format('UPDATE bookings SET payment_status = ''refunded'' WHERE id = %L', b3));
+  SELECT payment_status::text INTO pst FROM bookings WHERE id = b3;
+  PERFORM pg_temp.rec('payment: a client cannot change payment_status directly', r = 'OK:0' AND pst = 'paid', r || ' ' || pst);
 END $$;
 
 SELECT pg_temp.cleanup();
-SELECT name, passed, detail FROM pg_temp.results ORDER BY n;
+SELECT name, passed, detail FROM pg_temp.results ORDER BY n;

@@ -21,17 +21,18 @@ function num(v, field, { min, max, allowString = false } = {}) {
   return n;
 }
 
-function validateBookingWindow(startRaw, endRaw, now = new Date()) {
-  const start = parseIso(startRaw, 'start_time');
-  const end = parseIso(endRaw, 'end_time');
-  if (end <= start) throw bad('end_time must be after start_time');
-  if (start < now) throw bad('start_time cannot be in the past');
+function validateBookingWindow(startRaw, endRaw, now = new Date(), names = { start: 'start_time', end: 'end_time' }) {
+  const start = parseIso(startRaw, names.start);
+  const end = parseIso(endRaw, names.end);
+  if (end <= start) throw bad(`${names.end} must be after ${names.start}`);
+  if (start < now) throw bad(`${names.start} cannot be in the past`);
   if (end - start > MAX_BOOKING_MS) throw bad('A booking cannot be longer than 24 hours');
   return { start, end };
 }
 
 const LISTING_FIELDS = ['title', 'address', 'latitude', 'longitude', 'price_per_hour'];
-const LISTING_OPTIONAL = ['description', 'rules', 'vehicle_type'];
+const LISTING_OPTIONAL = ['description', 'rules', 'vehicle_type', 'location_label'];
+const OPTIONAL_MAX = { vehicle_type: 50, location_label: 120 };
 
 function str(v, field, max) {
   if (typeof v !== 'string' || v.trim() === '') throw bad(`${field} must be a non-empty string`);
@@ -70,6 +71,7 @@ function validateListingInput(body, { partial }) {
   if (body.address !== undefined) out.address = str(body.address, 'address', 300);
   if (body.latitude !== undefined) out.latitude = num(body.latitude, 'latitude', { min: -90, max: 90 });
   if (body.longitude !== undefined) out.longitude = num(body.longitude, 'longitude', { min: -180, max: 180 });
+  if (out.latitude === 0 && out.longitude === 0) throw bad('latitude/longitude 0,0 is not a real location');
   if (body.price_per_hour !== undefined) {
     out.price_per_hour = num(body.price_per_hour, 'price_per_hour', { min: 0.01, max: 100000 });
     if (Math.round(out.price_per_hour * 100) / 100 !== out.price_per_hour) throw bad('price_per_hour can have at most 2 decimals');
@@ -78,7 +80,7 @@ function validateListingInput(body, { partial }) {
     if (typeof body.is_active !== 'boolean') throw bad('is_active must be true or false');
     out.is_active = body.is_active;
   }
-  for (const f of LISTING_OPTIONAL) if (body[f] !== undefined) out[f] = optText(body[f], f, f === 'vehicle_type' ? 50 : 1000);
+  for (const f of LISTING_OPTIONAL) if (body[f] !== undefined) out[f] = optText(body[f], f, OPTIONAL_MAX[f] || 1000);
   if (body.evidence_urls !== undefined) out.evidence_urls = urlList(body.evidence_urls, 'evidence_urls');
   if (body.availability !== undefined) out.availability = validateAvailability(body.availability);
   if (partial && Object.keys(out).length === 0) throw bad('No updatable fields supplied');
@@ -99,4 +101,43 @@ function validateAvailability(windows) {
   });
 }
 
-module.exports = { isUuid, parseIso, num, validateBookingWindow, validateListingInput, validateAvailability, MAX_BOOKING_MS };
+// PUT /listings/:id/location : both coordinates are required, address and location_label are optional
+function validateLocationInput(body) {
+  if (!body || typeof body !== 'object' || Array.isArray(body)) throw bad('Request body must be a JSON object');
+  for (const k of Object.keys(body)) {
+    if (!['latitude', 'longitude', 'address', 'location_label'].includes(k)) throw bad(`Field not allowed: ${k}`);
+  }
+  if (body.latitude === undefined) throw bad('latitude is required');
+  if (body.longitude === undefined) throw bad('longitude is required');
+  const out = {
+    latitude: num(body.latitude, 'latitude', { min: -90, max: 90 }),
+    longitude: num(body.longitude, 'longitude', { min: -180, max: 180 }),
+  };
+  if (out.latitude === 0 && out.longitude === 0) throw bad('latitude/longitude 0,0 is not a real location');
+  if (body.address !== undefined) out.address = str(body.address, 'address', 300);
+  if (body.location_label !== undefined) out.location_label = optText(body.location_label, 'location_label', 120);
+  return out;
+}
+
+// Photo upload query string: where the provider's device says the photo was taken (sent with their permission).
+// This is NOT read from the image's EXIF (EXIF can be missing or edited, so it is never trusted or stored).
+const FUTURE_SKEW_MS = 5 * 60 * 1000;
+function validateCaptureMeta(q, now = new Date()) {
+  const hasLat = q.capture_latitude !== undefined;
+  const hasLng = q.capture_longitude !== undefined;
+  if (hasLat !== hasLng) throw bad('capture_latitude and capture_longitude must be given together');
+  const out = { capture_latitude: null, capture_longitude: null, captured_at: null };
+  if (hasLat) {
+    out.capture_latitude = num(q.capture_latitude, 'capture_latitude', { min: -90, max: 90, allowString: true });
+    out.capture_longitude = num(q.capture_longitude, 'capture_longitude', { min: -180, max: 180, allowString: true });
+    if (out.capture_latitude === 0 && out.capture_longitude === 0) throw bad('capture coordinates 0,0 are not a real location');
+  }
+  if (q.captured_at !== undefined) {
+    const d = parseIso(q.captured_at, 'captured_at');
+    if (d.getTime() > now.getTime() + FUTURE_SKEW_MS) throw bad('captured_at cannot be in the future');
+    out.captured_at = d;
+  }
+  return out;
+}
+
+module.exports = { isUuid, parseIso, num, validateBookingWindow, validateListingInput, validateAvailability, validateLocationInput, validateCaptureMeta, MAX_BOOKING_MS };

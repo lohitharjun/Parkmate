@@ -273,3 +273,88 @@ test('HEALTH: both routes OK with DB connected', async () => {
     assert.strictEqual(r.status, 200); assert.strictEqual(j.db, 'up');
   }
 });
+// ======================= Tasks A, C, D (migrations 007-009) =======================
+const { jpeg } = require('./helpers.image');
+
+test('LOCATION: owner saves coordinates; approved listing goes back to pending and unverified; admin approval verifies', async () => {
+  const bad1 = await call('PUT', `/listings/${l2.id}/location`, 'OWNER', { latitude: 95, longitude: 80 });
+  assert.strictEqual(bad1.status, 400);
+  assert.strictEqual((await call('PUT', `/listings/${l2.id}/location`, 'OWNER', { latitude: 12.9, longitude: 80.1, location_verified: true })).status, 400);
+  assert.strictEqual((await call('PUT', `/listings/${l2.id}/location`, 'CONSUMER', { latitude: 12.9, longitude: 80.1 })).status, 403);
+  assert.strictEqual((await call('PUT', `/listings/${l2.id}/location`, null, { latitude: 12.9, longitude: 80.1 })).status, 401);
+  let d = await call('GET', `/listings/${l2.id}`, 'OWNER');
+  assert.strictEqual(d.body.data.status, 'approved'); assert.strictEqual(d.body.data.location_verified, true);
+  const before = new Date(d.body.data.location_updated_at).getTime();
+  const r = await call('PUT', `/listings/${l2.id}/location`, 'OWNER', { latitude: 12.951, longitude: 80.101, location_label: 'Gate B' });
+  assert.strictEqual(r.status, 200);
+  assert.strictEqual(r.body.data.status, 'pending'); assert.strictEqual(r.body.data.location_verified, false);
+  assert.strictEqual(r.body.data.location_label, 'Gate B');
+  assert.ok(new Date(r.body.data.location_updated_at).getTime() > before, 'location_updated_at should move forward');
+  await call('PATCH', `/admin/listings/${l2.id}/review`, 'ADMIN', { decision: 'approved' });
+  d = await call('GET', `/listings/${l2.id}`, 'OWNER');
+  assert.strictEqual(d.body.data.location_verified, true);
+  assert.ok(Array.isArray(d.body.data.photos));
+});
+
+test('AVAILABILITY CHECK + BOOKING recheck: reasons, ownership, payment state kept separate', async () => {
+  const free = slot(18, 19, 9), taken = slot(9, 11);
+  const q = (s) => `?start=${encodeURIComponent(s.start_time)}&end=${encodeURIComponent(s.end_time)}`;
+  let r = await call('GET', `/listings/${listing.id}/availability-check${q(free)}`, null);
+  assert.strictEqual(r.status, 200); assert.strictEqual(r.body.data.available, true);
+  assert.strictEqual(r.body.data.reason, null); assert.strictEqual(r.body.data.estimated_total_price, 40);
+  r = await call('GET', `/listings/${listing.id}/availability-check${q(taken)}`, null);
+  assert.strictEqual(r.body.data.available, false); assert.strictEqual(r.body.data.reason, 'SLOT_TAKEN');
+  r = await call('GET', `/listings/${listing.id}/availability-check${q(free)}`, 'OWNER');
+  assert.strictEqual(r.body.data.reason, 'OWN_LISTING');
+  r = await call('POST', '/bookings', 'CONSUMER', { listing_id: listing.id, ...taken });
+  assert.strictEqual(r.status, 409); assert.strictEqual(r.body.error.reason, 'SLOT_TAKEN');
+  r = await call('POST', '/bookings', 'CONSUMER', { listing_id: listing.id, ...free, payment_status: 'paid' });
+  assert.strictEqual(r.status, 201); assert.strictEqual(r.body.data.status, 'confirmed'); assert.strictEqual(r.body.data.payment_status, 'unpaid');
+  const mine = await call('GET', `/bookings/${r.body.data.id}`, 'CONSUMER');
+  assert.strictEqual(mine.status, 200); assert.strictEqual(mine.body.data.payment_status, 'unpaid');
+  const prov = await call('GET', `/bookings/${r.body.data.id}`, 'OWNER');
+  assert.strictEqual(prov.status, 200); assert.ok(prov.body.data.consumer && !('user_id' in prov.body.data));
+  assert.strictEqual((await call('GET', `/bookings/${r.body.data.id}`, null)).status, 401);
+  assert.strictEqual((await call('PATCH', `/bookings/${r.body.data.id}/cancel`, 'OWNER')).status, 404, 'provider cannot cancel a consumer booking');
+  assert.strictEqual((await call('PATCH', `/bookings/${r.body.data.id}/cancel`, 'CONSUMER')).status, 200);
+});
+
+async function upload(role, id, body, type, qs = '') {
+  const res = await fetch(`${API}/listings/${id}/photos${qs}`, {
+    method: 'POST', headers: { 'Content-Type': type, ...(role ? { Authorization: `Bearer ${tokens[role]}` } : {}) }, body });
+  let json = null; try { json = await res.json(); } catch (_) {}
+  return { status: res.status, body: json };
+}
+
+test('PHOTOS: upload -> review -> consumer sees approved only; EXIF stripped; ownership enforced', async (t) => {
+  const img = jpeg(); // contains fake EXIF/GPS/XMP/IPTC strings that must never come back
+  assert.strictEqual((await upload(null, listing.id, img, 'image/jpeg')).status, 401);
+  assert.strictEqual((await upload('CONSUMER', listing.id, img, 'image/jpeg')).status, 403);
+  assert.strictEqual((await upload('OWNER', listing.id, Buffer.from('not an image'), 'text/plain')).status, 415);
+  const qs = `?capture_latitude=13.0067&capture_longitude=80.2206&captured_at=${encodeURIComponent(new Date().toISOString())}`;
+  const up = await upload('OWNER', listing.id, img, 'image/jpeg', qs);
+  if (up.status === 503) { t.skip('Storage is not configured on this server (SUPABASE_SERVICE_ROLE_KEY / bucket)'); return; }
+  assert.strictEqual(up.status, 201, JSON.stringify(up.body));
+  const photo = up.body.data;
+  assert.strictEqual(photo.review_status, 'pending'); assert.strictEqual(photo.is_primary, true);
+  assert.ok(photo.url && !('storage_path' in photo));
+
+  const file = await fetch(photo.url); assert.strictEqual(file.status, 200);
+  const bytes = Buffer.from(await file.arrayBuffer());
+  for (const s of ['SECRETGPS', 'SECRETXMP', 'SECRETIPTC', 'TRAILING_SECRET']) assert.ok(!bytes.includes(Buffer.from(s)), `${s} leaked to consumers`);
+
+  assert.strictEqual((await call('GET', `/listings/${listing.id}/photos`, 'CONSUMER')).body.data.length, 0, 'pending photo must be hidden');
+  assert.strictEqual((await call('GET', `/listings/${listing.id}/photos`, 'OWNER')).body.data.length, 1);
+  assert.strictEqual((await call('PATCH', `/admin/photos/${photo.id}/review`, 'OWNER', { decision: 'approved' })).status, 403);
+  assert.strictEqual((await call('PATCH', `/admin/photos/${photo.id}/review`, 'ADMIN', { decision: 'approved' })).status, 200);
+
+  const seen = await call('GET', `/listings/${listing.id}/photos`, 'CONSUMER');
+  assert.strictEqual(seen.body.data.length, 1);
+  assert.deepStrictEqual(Object.keys(seen.body.data[0]).sort(), ['id', 'is_primary', 'uploaded_at', 'url']);
+  const detail = await call('GET', `/listings/${listing.id}`, null);
+  assert.strictEqual(detail.body.data.photos.length, 1);
+
+  assert.strictEqual((await call('DELETE', `/listings/${listing.id}/photos/${photo.id}`, 'CONSUMER')).status, 403);
+  assert.strictEqual((await call('DELETE', `/listings/${listing.id}/photos/${photo.id}`, 'OWNER')).status, 200);
+  assert.strictEqual((await call('GET', `/listings/${listing.id}/photos`, 'OWNER')).body.data.length, 0);
+});
